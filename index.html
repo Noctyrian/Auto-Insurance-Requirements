@@ -200,7 +200,7 @@ function findHeader(headers, candidates){
 
 function canonicalize(rawRows){
   if(!rawRows.length) return [];
-  const headers = Object.keys(rawRows[0]);
+  const headers = Array.from(new Set(rawRows.flatMap(row => Object.keys(row))));
   const map = {};
   for(const [canonical, candidates] of Object.entries(FIELD_CANDIDATES)){
     const found = findHeader(headers, candidates);
@@ -217,24 +217,24 @@ function canonicalize(rawRows){
       if(!(clean in row)) row[clean] = v == null ? '' : String(v).trim();
     }
 
-    row.state = row.state || row.State || row[map.state] || '';
-    row.abbr = row.abbr || row.Abbr || row.ABBR || row[map.abbr] || '';
+    let stateRaw = row.state || row.State || row[map.state] || row['State Name'] || row.Jurisdiction || '';
+    let abbrRaw = row.abbr || row.Abbr || row.ABBR || row[map.abbr] || row['State Abbreviation'] || row.Code || '';
 
-    const abbrCandidate = String(row.abbr || '').toUpperCase().trim();
-    const stateCandidate = normHeader(row.state);
+    stateRaw = normHeader(stateRaw).replace(/\u00A0/g, ' ');
+    abbrRaw = String(abbrRaw || '').replace(/\u00A0/g, ' ').trim().toUpperCase();
 
-    if(!stateCandidate && ABBR_TO_STATE[abbrCandidate]) row.state = ABBR_TO_STATE[abbrCandidate];
-    if(!abbrCandidate && STATE_TO_ABBR[stateCandidate]) row.abbr = STATE_TO_ABBR[stateCandidate];
-
-    row.state = normHeader(row.state);
-    row.abbr = String(row.abbr || '').toUpperCase().trim();
-
-    if(row.state.length === 2 && ABBR_TO_STATE[row.state.toUpperCase()]){
-      row.abbr = row.state.toUpperCase();
-      row.state = ABBR_TO_STATE[row.abbr];
+    if(stateRaw.length === 2 && ABBR_TO_STATE[stateRaw.toUpperCase()]){
+      abbrRaw = stateRaw.toUpperCase();
+      stateRaw = ABBR_TO_STATE[abbrRaw];
     }
+
+    if(!stateRaw && ABBR_TO_STATE[abbrRaw]) stateRaw = ABBR_TO_STATE[abbrRaw];
+    if(!abbrRaw && STATE_TO_ABBR[stateRaw]) abbrRaw = STATE_TO_ABBR[stateRaw];
+
+    row.state = stateRaw;
+    row.abbr = abbrRaw;
     return row;
-  }).filter(r => r.state && r.abbr && ABBR_TO_STATE[r.abbr] === r.state);
+  }).filter(r => (r.state && STATE_TO_ABBR[r.state]) || (r.abbr && ABBR_TO_STATE[r.abbr]));
 }
 
 function rowsFromSheet(workbook, sheetName){
@@ -408,7 +408,7 @@ async function loadWorkbook(){
     const loaded = sheetToRows(workbook);
 
     if(!loaded.rows.length){
-      throw new Error('The workbook loaded, but no recognizable state rows were found. Keep a State column or an abbreviation column, and keep the data on one sheet.');
+      throw new Error(`The workbook loaded, but no recognizable state rows were found. Sheets found: ${workbook.SheetNames.join(', ')}. Confirm the active sheet has a State column in row 1, or send me the current workbook so I can tune the parser.`);
     }
 
     applyRows(loaded.rows, loaded.sheetName);
