@@ -9,14 +9,14 @@
   <style>
     :root {
       --bg:#f6f7fb; --panel:#ffffff; --ink:#172033; --muted:#5d687c; --line:#dbe1ea; --accent:#275efe;
-      --soft:#edf2ff;
+      --soft:#edf2ff; --warn:#fff8df; --warnline:#f3d27a; --warntext:#6f5200;
     }
     * { box-sizing: border-box; }
     body { margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:var(--ink); background:var(--bg); }
     header { padding:28px clamp(18px,4vw,48px) 14px; }
     h1 { margin:0 0 8px; font-size:clamp(26px,4vw,42px); letter-spacing:-.04em; }
     .sub { color:var(--muted); max-width:900px; line-height:1.45; }
-    .notice { margin:16px clamp(18px,4vw,48px) 0; padding:12px 14px; border:1px solid #f3d27a; background:#fff8df; color:#6f5200; border-radius:16px; line-height:1.45; font-size:14px; }
+    .notice { margin:16px clamp(18px,4vw,48px) 0; padding:12px 14px; border:1px solid var(--warnline); background:var(--warn); color:var(--warntext); border-radius:16px; line-height:1.45; font-size:14px; }
     .notice strong { color:#4c3900; }
     main { display:grid; grid-template-columns:minmax(360px, 1.2fr) minmax(320px, .8fr); gap:20px; padding:12px clamp(18px,4vw,48px) 38px; }
     .card { background:var(--panel); border:1px solid var(--line); border-radius:22px; box-shadow:0 12px 34px rgba(23,32,51,.06); overflow:hidden; }
@@ -24,64 +24,363 @@
     #map { width:100%; height:580px; }
     .panel { padding:22px; }
     .toolbar { display:grid; grid-template-columns:1fr; gap:10px; align-items:center; margin-bottom:16px; }
-    select, input { width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:12px; background:#fff; font:inherit; color:var(--ink); }
+    select, input, button { width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:12px; background:#fff; font:inherit; color:var(--ink); }
+    button { cursor:pointer; font-weight:700; background:var(--soft); color:var(--accent); }
+    button:hover { filter:brightness(.98); }
+    .status { margin-bottom:12px; padding:10px 12px; border:1px solid var(--line); border-radius:14px; color:var(--muted); background:#fbfcff; font-size:13px; line-height:1.35; }
+    .status.error { border-color:#f0b5b5; background:#fff0f0; color:#8a2020; }
     .state-title { display:flex; align-items:baseline; justify-content:space-between; gap:12px; border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:14px; }
     .state-title h2 { margin:0; font-size:28px; letter-spacing:-.03em; }
-    .pill { font-weight:700; color:var(--accent); background:var(--soft); border-radius:999px; padding:5px 10px; }
+    .pill { font-weight:700; color:var(--accent); background:var(--soft); border-radius:999px; padding:5px 10px; white-space:nowrap; }
     .grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; margin:16px 0; }
-    .metric { border:1px solid var(--line); border-radius:16px; padding:12px; background:#fbfcff; }
+    .metric { border:1px solid var(--line); border-radius:16px; padding:12px; background:#fbfcff; min-width:0; }
     .label { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:700; }
-    .value { margin-top:5px; font-size:16px; line-height:1.35; }
+    .value { margin-top:5px; font-size:16px; line-height:1.35; overflow-wrap:anywhere; }
     .wide { grid-column:1 / -1; }
     h3 { margin:22px 0 10px; font-size:16px; }
     .sources { display:grid; gap:8px; }
-    .sources a { color:var(--accent); text-decoration:none; border:1px solid var(--line); border-radius:12px; padding:9px 10px; background:#fff; }
+    .sources a { color:var(--accent); text-decoration:none; border:1px solid var(--line); border-radius:12px; padding:9px 10px; background:#fff; overflow-wrap:anywhere; }
     .sources a:hover { text-decoration:underline; }
     .notes { color:var(--muted); line-height:1.45; background:#fbfcff; border:1px solid var(--line); border-radius:16px; padding:12px; }
+    code { background:#edf2ff; padding:1px 4px; border-radius:6px; }
     footer { color:var(--muted); font-size:13px; padding:0 clamp(18px,4vw,48px) 32px; line-height:1.45; }
     .footer-inner { border-top:1px solid var(--line); padding-top:16px; }
     @media (max-width: 900px) { main { grid-template-columns:1fr; } #map { height:500px; } .map-wrap { min-height:520px; } }
   </style>
 </head>
 <body>
-  <div class="notice"><strong>Research-use advisory:</strong> This website is for research and informational purposes only and should not be used as legal advice. Requirements may change; verify all information against official state sources or consult a qualified professional. Created by Noctyrian, with the assistance of ChatGPT.</div>
+  <div class="notice"><strong>Research-use advisory:</strong> This website is for research and informational purposes only and should not be used as legal advice. Requirements may change; verify all information against official state sources or consult a qualified professional.</div>
   <header>
     <h1>US Auto Insurance Requirements</h1>
-    <div class="sub">Click any state on the map or use the dropdown to view liability minimums, PIP, UM/UIM, statute of limitations, source links, audit status, and notes from the spreadsheet. Updated 4/29/2026</div>
+    <div class="sub">Click any state on the map or use the dropdown to view liability minimums, PIP, UM/UIM, statute of limitations, source links, audit status, and notes from the spreadsheet.</div>
   </header>
   <main>
     <section class="card map-wrap"><div id="map"></div></section>
     <aside class="card panel">
+      <div id="status" class="status">Loading spreadsheet…</div>
       <div class="toolbar">
         <input id="stateSearch" type="search" placeholder="Search state, coverage, or note…" aria-label="Search state information" />
         <select id="stateSelect" aria-label="Select a state"></select>
+        <button id="reloadBtn" type="button">Reload spreadsheet data</button>
       </div>
       <div id="details"></div>
     </aside>
   </main>
-  <footer><div class="footer-inner">Data loaded from <code>Auto_Insurance_Requirements.xlsx</code>. Source links reflect the hyperlinks embedded in the workbook. This site is provided for research and informational purposes only; it is not legal advice and should not be relied on as a substitute for official state sources or qualified legal guidance.</div></footer>
+  <footer><div class="footer-inner">Data loaded dynamically from <code>Auto_Insurance_Requirements.xlsx</code>. Source links reflect URL columns and hyperlinks embedded in the workbook. This site is provided for research and informational purposes only; it is not legal advice and should not be relied on as a substitute for official state sources or qualified legal guidance.</div></footer>
+
 <script>
 const WORKBOOK_FILE = 'Auto_Insurance_Requirements.xlsx';
-const STATE_TO_ABBR = {'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA','Colorado':'CO','Connecticut':'CT','Delaware':'DE','District of Columbia':'DC','Florida':'FL','Georgia':'GA','Hawaii':'HI','Idaho':'ID','Illinois':'IL','Indiana':'IN','Iowa':'IA','Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD','Massachusetts':'MA','Michigan':'MI','Minnesota':'MN','Mississippi':'MS','Missouri':'MO','Montana':'MT','Nebraska':'NE','Nevada':'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND','Ohio':'OH','Oklahoma':'OK','Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD','Tennessee':'TN','Texas':'TX','Utah':'UT','Vermont':'VT','Virginia':'VA','Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY'};
+
+const STATE_TO_ABBR = {
+  'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA','Colorado':'CO','Connecticut':'CT',
+  'Delaware':'DE','District of Columbia':'DC','Florida':'FL','Georgia':'GA','Hawaii':'HI','Idaho':'ID','Illinois':'IL',
+  'Indiana':'IN','Iowa':'IA','Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD',
+  'Massachusetts':'MA','Michigan':'MI','Minnesota':'MN','Mississippi':'MS','Missouri':'MO','Montana':'MT','Nebraska':'NE',
+  'Nevada':'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC',
+  'North Dakota':'ND','Ohio':'OH','Oklahoma':'OK','Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI',
+  'South Carolina':'SC','South Dakota':'SD','Tennessee':'TN','Texas':'TX','Utah':'UT','Vermont':'VT','Virginia':'VA',
+  'Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY'
+};
 const ABBR_TO_STATE = Object.fromEntries(Object.entries(STATE_TO_ABBR).map(([s,a])=>[a,s]));
-let rows=[], byAbbr={}, sortedRows=[], currentAbbr='AL', mapReady=false;
-const select=document.getElementById('stateSelect'), search=document.getElementById('stateSearch'), details=document.getElementById('details');
-function esc(s){return String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));}
-function normHeader(h){return String(h??'').trim().replace(/\s+/g,' ')}
-function normKey(k){return normHeader(k).toLowerCase().replace(/[^a-z0-9]+/g,'')}
-function addr(r,c){return XLSX.utils.encode_cell({r,c})}
-function findHeader(headers,candidates){const hs=headers.map(h=>[h,normKey(h)]);for(const c of candidates){const k=normKey(c), hit=hs.find(([,h])=>h===k); if(hit)return hit[0];} for(const c of candidates){const k=normKey(c), hit=hs.find(([,h])=>h.includes(k)||k.includes(h)); if(hit)return hit[0];} return null;}
-function normalizeRows(rawRows){if(!rawRows.length)return[];const headers=Object.keys(rawRows[0]);const stateCol=findHeader(headers,['state','state name','jurisdiction']);const abbrCol=findHeader(headers,['abbr','abbreviation','state abbreviation','code']);return rawRows.map(raw=>{const row={};for(const[k,v]of Object.entries(raw))row[normHeader(k)]=v==null?'':String(v).trim();row.state=row.state||row.State||(stateCol?row[stateCol]:'');row.abbr=row.abbr||row.Abbr||row.ABBR||(abbrCol?row[abbrCol]:'');if(!row.state&&row.abbr)row.state=ABBR_TO_STATE[String(row.abbr).toUpperCase()]||row.abbr;if(!row.abbr&&row.state)row.abbr=STATE_TO_ABBR[row.state]||'';row.abbr=String(row.abbr||'').toUpperCase().trim();return row;}).filter(r=>r.state&&r.abbr&&STATE_TO_ABBR[r.state]!==undefined);}
-function sheetToRowsWithLinks(workbook){const sheet=workbook.Sheets[workbook.SheetNames[0]];const range=XLSX.utils.decode_range(sheet['!ref']||'A1:A1');const headerRow=range.s.r;const headers=[];for(let c=range.s.c;c<=range.e.c;c++){headers.push(normHeader(sheet[addr(headerRow,c)]?.v||''));}const output=[];for(let r=headerRow+1;r<=range.e.r;r++){const row={};let hasData=false;headers.forEach((header,i)=>{if(!header)return;const c=range.s.c+i;const cell=sheet[addr(r,c)];const value=cell?.w??cell?.v??'';if(String(value).trim()!=='')hasData=true;row[header]=value==null?'':String(value).trim();if(cell?.l?.Target&&!header.toLowerCase().endsWith('url'))row[`${header} URL`]=cell.l.Target;});if(hasData)output.push(row);}return normalizeRows(output);}
-function link(label,url){return url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>`:''}
-function metric(label,value,wide=false){return `<div class="metric ${wide?'wide':''}"><div class="label">${esc(label)}</div><div class="value">${esc(value||'—')}</div></div>`}
-function populateOptions(list=sortedRows){select.innerHTML='';list.forEach(r=>{const opt=document.createElement('option');opt.value=r.abbr;opt.textContent=`${r.state} (${r.abbr})`;select.appendChild(opt);});}
-function show(abbr){const r=byAbbr[abbr]||rows[0];if(!r)return;currentAbbr=r.abbr;select.value=r.abbr;const sources=[['BI Source',r['BI Source'],r['BI Source URL']],['PD Source',r['PD Source'],r['PD Source URL']],['PIP Source',r['PIP Source'],r['PIP Source URL']],['UM/UIM Source',r['UM/UIM Source'],r['UM/UIM Source URL']],['BI SOL Source',r['BI SOL Source'],r['BI SOL Source URL']],['PD SOL Source',r['PD SOL Source'],r['PD SOL Source URL']]].map(([k,label,url])=>link(label||k,url)).filter(Boolean).join('');details.innerHTML=`<div class="state-title"><h2>${esc(r.state)}</h2><span class="pill">${esc(r.abbr)}</span></div><div class="grid">${metric('Bodily Injury',r.BI)}${metric('Property Damage',r.PD)}${metric('PIP',r.PIP,true)}${metric('UM',r.UM,true)}${metric('UIM',r.UIM,true)}${metric('BI Statute of Limitations',r['BI SOL'])}${metric('PD Statute of Limitations',r['PD SOL'])}${metric('Effective Date',r['Effective Date'])}${metric('Audit Status',r['Recent Change / Audit Status'])}</div><h3>Notes</h3><div class="notes">${esc(r.Notes||'—')}</div><h3>Sources</h3><div class="sources">${sources||'<span class="notes">No source hyperlinks found.</span>'}</div>`;}
-function drawMap(){const locations=rows.map(r=>r.abbr), z=rows.map((_,i)=>i+1), text=rows.map(r=>`${r.state}<br>BI: ${r.BI||'—'}<br>PD: ${r.PD||'—'}<br>PIP: ${r.PIP||'—'}`);const trace={type:'choropleth',locationmode:'USA-states',locations,z,text,hovertemplate:'%{text}<extra></extra>',colorscale:[[0,'#dbe7ff'],[1,'#275efe']],showscale:false,marker:{line:{color:'#ffffff',width:1.25}}};const layout={geo:{scope:'usa',projection:{type:'albers usa'},bgcolor:'rgba(0,0,0,0)'},margin:{l:0,r:0,t:0,b:0},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)'};Plotly.newPlot('map',[trace],layout,{displayModeBar:false,responsive:true});if(!mapReady){document.getElementById('map').on('plotly_click',e=>{const abbr=e.points?.[0]?.location;if(abbr)show(abbr);});mapReady=true;}}
-function applyRows(nextRows){rows=nextRows;byAbbr=Object.fromEntries(rows.map(r=>[r.abbr,r]));sortedRows=[...rows].sort((a,b)=>a.state.localeCompare(b.state));populateOptions();drawMap();show(byAbbr[currentAbbr]?currentAbbr:rows[0].abbr);}
-async function loadWorkbook(){details.innerHTML='<div class="notes">Loading spreadsheet data…</div>';try{const response=await fetch(`${WORKBOOK_FILE}?v=${Date.now()}`,{cache:'no-store'});if(!response.ok)throw new Error(`Could not load ${WORKBOOK_FILE}. HTTP ${response.status}`);const buffer=await response.arrayBuffer();const workbook=XLSX.read(buffer,{type:'array',cellDates:true,cellNF:false,cellText:true});const loadedRows=sheetToRowsWithLinks(workbook);if(!loadedRows.length)throw new Error('No state rows were found. Make sure the first sheet has State/state and abbreviation columns, or recognizable US state names.');applyRows(loadedRows);}catch(err){console.error(err);details.innerHTML=`<div class="notes"><strong>Spreadsheet loading error:</strong><br>${esc(err.message)}<br><br>Confirm that <code>${esc(WORKBOOK_FILE)}</code> is in the same GitHub folder as <code>index.html</code>, has the same filename, and that GitHub Pages has finished deploying.</div>`;}}
-search.addEventListener('input',e=>{const q=e.target.value.trim().toLowerCase();const filtered=q?sortedRows.filter(r=>Object.values(r).some(v=>String(v??'').toLowerCase().includes(q))):sortedRows;populateOptions(filtered.length?filtered:sortedRows);if(select.options.length)show(select.value);});
-select.addEventListener('change',e=>show(e.target.value));
+
+let rows = [], byAbbr = {}, sortedRows = [], currentAbbr = 'AL', mapClickAttached = false;
+const select = document.getElementById('stateSelect');
+const search = document.getElementById('stateSearch');
+const details = document.getElementById('details');
+const statusBox = document.getElementById('status');
+const reloadBtn = document.getElementById('reloadBtn');
+
+function esc(s){return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));}
+function normHeader(h){return String(h ?? '').trim().replace(/\s+/g,' ');}
+function normKey(k){return normHeader(k).toLowerCase().replace(/[^a-z0-9]+/g,'');}
+function addr(r,c){return XLSX.utils.encode_cell({r,c});}
+
+const FIELD_CANDIDATES = {
+  state:['state','state name','jurisdiction'],
+  abbr:['abbr','abbreviation','state abbreviation','code','state code'],
+  BI:['BI','Bodily Injury','Bodily Injury Liability','BI Minimum','BI Limits'],
+  PD:['PD','Property Damage','Property Damage Liability','PD Minimum','PD Limits'],
+  PIP:['PIP','Personal Injury Protection','No Fault','No-Fault'],
+  UM:['UM','Uninsured Motorist','Uninsured Motorist Coverage'],
+  UIM:['UIM','Underinsured Motorist','Underinsured Motorist Coverage'],
+  'BI SOL':['BI SOL','BI Statute of Limitations','Bodily Injury SOL','Personal Injury SOL'],
+  'PD SOL':['PD SOL','PD Statute of Limitations','Property Damage SOL'],
+  'BI Source':['BI Source','Bodily Injury Source'],
+  'BI Source URL':['BI Source URL','Bodily Injury Source URL','BI URL'],
+  'PD Source':['PD Source','Property Damage Source'],
+  'PD Source URL':['PD Source URL','Property Damage Source URL','PD URL'],
+  'PIP Source':['PIP Source','Personal Injury Protection Source'],
+  'PIP Source URL':['PIP Source URL','Personal Injury Protection Source URL','PIP URL'],
+  'UM/UIM Source':['UM/UIM Source','UM Source','UIM Source','Uninsured Motorist Source'],
+  'UM/UIM Source URL':['UM/UIM Source URL','UM Source URL','UIM Source URL','Uninsured Motorist Source URL'],
+  'BI SOL Source':['BI SOL Source','Bodily Injury SOL Source','Personal Injury SOL Source'],
+  'BI SOL Source URL':['BI SOL Source URL','Bodily Injury SOL Source URL','Personal Injury SOL Source URL'],
+  'PD SOL Source':['PD SOL Source','Property Damage SOL Source'],
+  'PD SOL Source URL':['PD SOL Source URL','Property Damage SOL Source URL'],
+  'Effective Date':['Effective Date','Effective','Date'],
+  'Recent Change / Audit Status':['Recent Change / Audit Status','Audit Status','Recent Change','Status'],
+  Notes:['Notes','Note','Comments','Comment']
+};
+
+function findHeader(headers, candidates){
+  const hs = headers.map(h => [h, normKey(h)]).filter(([,k]) => k);
+  for(const c of candidates){ const k = normKey(c); const hit = hs.find(([,h]) => h === k); if(hit) return hit[0]; }
+  for(const c of candidates){ const k = normKey(c); const hit = hs.find(([,h]) => h.includes(k) || k.includes(h)); if(hit) return hit[0]; }
+  return null;
+}
+
+function canonicalize(rawRows){
+  if(!rawRows.length) return [];
+  const headers = Object.keys(rawRows[0]);
+  const map = {};
+  for(const [canonical, candidates] of Object.entries(FIELD_CANDIDATES)){
+    const found = findHeader(headers, candidates);
+    if(found) map[canonical] = found;
+  }
+
+  return rawRows.map(raw => {
+    const row = {};
+    for(const [canonical, sourceHeader] of Object.entries(map)){
+      row[canonical] = raw[sourceHeader] == null ? '' : String(raw[sourceHeader]).trim();
+    }
+
+    // Keep extra columns searchable even if not displayed.
+    for(const [k,v] of Object.entries(raw)){
+      const clean = normHeader(k);
+      if(!(clean in row)) row[clean] = v == null ? '' : String(v).trim();
+    }
+
+    row.state = row.state || row.State || row[map.state] || '';
+    row.abbr = row.abbr || row.Abbr || row.ABBR || row[map.abbr] || '';
+
+    const abbrCandidate = String(row.abbr || '').toUpperCase().trim();
+    const stateCandidate = normHeader(row.state);
+
+    if(!stateCandidate && ABBR_TO_STATE[abbrCandidate]) row.state = ABBR_TO_STATE[abbrCandidate];
+    if(!abbrCandidate && STATE_TO_ABBR[stateCandidate]) row.abbr = STATE_TO_ABBR[stateCandidate];
+
+    row.state = normHeader(row.state);
+    row.abbr = String(row.abbr || '').toUpperCase().trim();
+
+    // If the state column accidentally contains abbreviations, recover.
+    if(row.state.length === 2 && ABBR_TO_STATE[row.state.toUpperCase()]){
+      row.abbr = row.state.toUpperCase();
+      row.state = ABBR_TO_STATE[row.abbr];
+    }
+
+    return row;
+  }).filter(r => r.state && r.abbr && ABBR_TO_STATE[r.abbr] === r.state);
+}
+
+function rowsFromSheet(workbook, sheetName){
+  const sheet = workbook.Sheets[sheetName];
+  const ref = sheet['!ref'];
+  if(!ref) return [];
+  const range = XLSX.utils.decode_range(ref);
+
+  // Try each of the first 10 rows as the header row, and choose the one that yields the most valid states.
+  let best = [];
+  for(let headerRow = range.s.r; headerRow <= Math.min(range.e.r, range.s.r + 9); headerRow++){
+    const headers = [];
+    for(let c = range.s.c; c <= range.e.c; c++){
+      headers.push(normHeader(sheet[addr(headerRow,c)]?.v || sheet[addr(headerRow,c)]?.w || ''));
+    }
+
+    const rawRows = [];
+    for(let r = headerRow + 1; r <= range.e.r; r++){
+      const raw = {};
+      let hasData = false;
+      headers.forEach((header, i) => {
+        if(!header) return;
+        const c = range.s.c + i;
+        const cell = sheet[addr(r,c)];
+        let value = cell?.w ?? cell?.v ?? '';
+        if(value instanceof Date) value = value.toISOString().slice(0,10);
+        if(String(value).trim() !== '') hasData = true;
+        raw[header] = value == null ? '' : String(value).trim();
+
+        // Preserve embedded hyperlink targets in a matching URL field.
+        if(cell?.l?.Target && !header.toLowerCase().endsWith('url')){
+          raw[`${header} URL`] = cell.l.Target;
+        }
+      });
+      if(hasData) rawRows.push(raw);
+    }
+
+    const candidate = canonicalize(rawRows);
+    if(candidate.length > best.length) best = candidate;
+  }
+  return best;
+}
+
+function sheetToRows(workbook){
+  let bestRows = [], bestSheet = '';
+  for(const sheetName of workbook.SheetNames){
+    const candidate = rowsFromSheet(workbook, sheetName);
+    if(candidate.length > bestRows.length){
+      bestRows = candidate;
+      bestSheet = sheetName;
+    }
+  }
+  return { rows: bestRows, sheetName: bestSheet };
+}
+
+function setStatus(msg, isError=false){
+  statusBox.className = `status${isError ? ' error' : ''}`;
+  statusBox.innerHTML = msg;
+}
+
+function get(r,k){ return r[k] ?? ''; }
+function link(label,url){
+  const u = String(url || '').trim();
+  if(!u) return '';
+  return `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(label || u)}</a>`;
+}
+function metric(label,value,wide=false){
+  return `<div class="metric ${wide?'wide':''}"><div class="label">${esc(label)}</div><div class="value">${esc(value || '—')}</div></div>`;
+}
+
+function populateOptions(list=sortedRows){
+  select.innerHTML = '';
+  list.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r.abbr;
+    opt.textContent = `${r.state} (${r.abbr})`;
+    select.appendChild(opt);
+  });
+}
+
+function sourceLinks(r){
+  const items = [
+    ['BI Source', get(r,'BI Source'), get(r,'BI Source URL')],
+    ['PD Source', get(r,'PD Source'), get(r,'PD Source URL')],
+    ['PIP Source', get(r,'PIP Source'), get(r,'PIP Source URL')],
+    ['UM/UIM Source', get(r,'UM/UIM Source'), get(r,'UM/UIM Source URL')],
+    ['BI SOL Source', get(r,'BI SOL Source'), get(r,'BI SOL Source URL')],
+    ['PD SOL Source', get(r,'PD SOL Source'), get(r,'PD SOL Source URL')]
+  ];
+  return items.map(([fallback,label,url]) => link(label || fallback, url)).filter(Boolean).join('');
+}
+
+function show(abbr){
+  const r = byAbbr[abbr] || rows[0];
+  if(!r) return;
+  currentAbbr = r.abbr;
+  select.value = r.abbr;
+  const sources = sourceLinks(r);
+  details.innerHTML = `
+    <div class="state-title"><h2>${esc(r.state)}</h2><span class="pill">${esc(r.abbr)}</span></div>
+    <div class="grid">
+      ${metric('Bodily Injury', get(r,'BI'))}
+      ${metric('Property Damage', get(r,'PD'))}
+      ${metric('PIP', get(r,'PIP'), true)}
+      ${metric('UM', get(r,'UM'), true)}
+      ${metric('UIM', get(r,'UIM'), true)}
+      ${metric('BI Statute of Limitations', get(r,'BI SOL'))}
+      ${metric('PD Statute of Limitations', get(r,'PD SOL'))}
+      ${metric('Effective Date', get(r,'Effective Date'))}
+      ${metric('Audit Status', get(r,'Recent Change / Audit Status'))}
+    </div>
+    <h3>Notes</h3>
+    <div class="notes">${esc(get(r,'Notes') || '—')}</div>
+    <h3>Sources</h3>
+    <div class="sources">${sources || '<span class="notes">No source hyperlinks found.</span>'}</div>
+  `;
+}
+
+function drawMap(){
+  const locations = rows.map(r => r.abbr);
+  const z = rows.map((_,i) => i + 1);
+  const text = rows.map(r => `${r.state}<br>BI: ${get(r,'BI') || '—'}<br>PD: ${get(r,'PD') || '—'}<br>PIP: ${get(r,'PIP') || '—'}`);
+
+  const trace = {
+    type:'choropleth',
+    locationmode:'USA-states',
+    locations,
+    z,
+    text,
+    hovertemplate:'%{text}<extra></extra>',
+    colorscale:[[0,'#dbe7ff'],[1,'#275efe']],
+    showscale:false,
+    marker:{line:{color:'#ffffff',width:1.25}}
+  };
+
+  const layout = {
+    geo:{scope:'usa', projection:{type:'albers usa'}, bgcolor:'rgba(0,0,0,0)'},
+    margin:{l:0,r:0,t:0,b:0},
+    paper_bgcolor:'rgba(0,0,0,0)',
+    plot_bgcolor:'rgba(0,0,0,0)'
+  };
+
+  Plotly.react('map', [trace], layout, {displayModeBar:false, responsive:true});
+
+  if(!mapClickAttached){
+    document.getElementById('map').on('plotly_click', e => {
+      const abbr = e.points?.[0]?.location;
+      if(abbr) show(abbr);
+    });
+    mapClickAttached = true;
+  }
+}
+
+function applyRows(nextRows, sheetName){
+  rows = nextRows;
+  byAbbr = Object.fromEntries(rows.map(r => [r.abbr, r]));
+  sortedRows = [...rows].sort((a,b) => a.state.localeCompare(b.state));
+  window.__INSURANCE_ROWS = rows; // useful for browser-console debugging
+  populateOptions();
+  drawMap();
+  show(byAbbr[currentAbbr] ? currentAbbr : rows[0].abbr);
+  setStatus(`Loaded ${rows.length} state rows from <code>${esc(WORKBOOK_FILE)}</code>${sheetName ? `, sheet <code>${esc(sheetName)}</code>` : ''}.`);
+}
+
+async function loadWorkbook(){
+  setStatus('Loading spreadsheet…');
+  details.innerHTML = '<div class="notes">Loading spreadsheet data…</div>';
+  try{
+    if(typeof XLSX === 'undefined') throw new Error('The XLSX parser library did not load. Check that the jsDelivr CDN script is reachable.');
+    const url = new URL(WORKBOOK_FILE, window.location.href);
+    url.searchParams.set('v', Date.now().toString()); // bypass browser/GitHub cache after workbook updates
+    const response = await fetch(url.href, { cache:'no-store' });
+    if(!response.ok) throw new Error(`Could not load ${WORKBOOK_FILE}. HTTP ${response.status}. The file must be in the same folder as index.html and named exactly ${WORKBOOK_FILE}.`);
+
+    const buffer = await response.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type:'array', cellDates:true, cellNF:false, cellText:true });
+    const loaded = sheetToRows(workbook);
+
+    if(!loaded.rows.length){
+      throw new Error('The workbook loaded, but no recognizable state rows were found. Keep a State column or an abbreviation column, and keep the data on one sheet.');
+    }
+
+    applyRows(loaded.rows, loaded.sheetName);
+  }catch(err){
+    console.error(err);
+    setStatus(`<strong>Spreadsheet loading error:</strong> ${esc(err.message)}`, true);
+    details.innerHTML = `
+      <div class="notes">
+        <strong>The map cannot populate because the spreadsheet did not load or parse.</strong><br><br>
+        Confirm these are true:<br>
+        1. <code>${esc(WORKBOOK_FILE)}</code> is in the same GitHub folder as <code>index.html</code>.<br>
+        2. The filename matches exactly, including underscores and capitalization.<br>
+        3. GitHub Pages is publishing from that same branch/folder.<br>
+        4. The workbook still has a State column or state-abbreviation column.
+      </div>`;
+  }
+}
+
+search.addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  const filtered = q ? sortedRows.filter(r => Object.values(r).some(v => String(v ?? '').toLowerCase().includes(q))) : sortedRows;
+  populateOptions(filtered.length ? filtered : sortedRows);
+  if(select.options.length) show(select.value || select.options[0].value);
+});
+select.addEventListener('change', e => show(e.target.value));
+reloadBtn.addEventListener('click', loadWorkbook);
+
+window.addEventListener('resize', () => {
+  if(rows.length) Plotly.Plots.resize('map');
+});
+
 loadWorkbook();
 </script>
 </body>
