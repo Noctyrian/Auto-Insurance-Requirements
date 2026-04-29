@@ -4,8 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>US Auto Insurance Requirements Map</title>
-  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
       --bg:#f6f7fb; --panel:#ffffff; --ink:#172033; --muted:#5d687c; --line:#dbe1ea; --accent:#275efe;
@@ -52,12 +50,12 @@
   <div class="notice"><strong>Research-use advisory:</strong> This website is for research and informational purposes only and should not be used as legal advice. Requirements may change; verify all information against official state sources or consult a qualified professional.</div>
   <header>
     <h1>US Auto Insurance Requirements</h1>
-    <div class="sub">Click any state on the map or use the dropdown to view liability minimums, PIP, UM/UIM, statute of limitations, source links, audit status, and notes from the spreadsheet.</div>
+    <div class="sub">Click any state on the map or use the dropdown to view liability minimums, PIP, UM/UIM, statute of limitations, source links, audit status, and notes from the spreadsheet. Updated 4/29/2026</div>
   </header>
   <main>
     <section class="card map-wrap"><div id="map"></div></section>
     <aside class="card panel">
-      <div id="status" class="status">Loading spreadsheet…</div>
+      <div id="status" class="status">Starting…</div>
       <div class="toolbar">
         <input id="stateSearch" type="search" placeholder="Search state, coverage, or note…" aria-label="Search state information" />
         <select id="stateSelect" aria-label="Select a state"></select>
@@ -66,10 +64,31 @@
       <div id="details"></div>
     </aside>
   </main>
-  <footer><div class="footer-inner">Data loaded dynamically from <code>Auto_Insurance_Requirements.xlsx</code>. Source links reflect URL columns and hyperlinks embedded in the workbook. This site is provided for research and informational purposes only; it is not legal advice and should not be relied on as a substitute for official state sources or qualified legal guidance.</div></footer>
+  <footer><div class="footer-inner">Data loaded dynamically from <code>Auto_Insurance_Requirements.xlsx</code>. Source links reflect URL columns and hyperlinks embedded in the workbook. This site is provided for research and informational purposes only; it is not legal advice and should not be relied on as a substitute for official state sources or qualified legal guidance. Created by Noctyrian, with the help of ChatGPT.</div></footer>
 
 <script>
 const WORKBOOK_FILE = 'Auto_Insurance_Requirements.xlsx';
+
+const LIBRARIES = [
+  {
+    name: 'Plotly map library',
+    globalName: 'Plotly',
+    urls: [
+      'https://cdn.plot.ly/plotly-2.35.2.min.js',
+      'https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js',
+      'https://unpkg.com/plotly.js-dist-min@2.35.2/plotly.min.js'
+    ]
+  },
+  {
+    name: 'Excel parser library',
+    globalName: 'XLSX',
+    urls: [
+      'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+      'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+      'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+    ]
+  }
+];
 
 const STATE_TO_ABBR = {
   'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA','Colorado':'CO','Connecticut':'CT',
@@ -94,6 +113,56 @@ function esc(s){return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','
 function normHeader(h){return String(h ?? '').trim().replace(/\s+/g,' ');}
 function normKey(k){return normHeader(k).toLowerCase().replace(/[^a-z0-9]+/g,'');}
 function addr(r,c){return XLSX.utils.encode_cell({r,c});}
+function setStatus(msg, isError=false){
+  statusBox.className = `status${isError ? ' error' : ''}`;
+  statusBox.innerHTML = msg;
+}
+
+function loadScriptWithTimeout(url, timeoutMs=12000){
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    let done = false;
+    const timer = setTimeout(() => {
+      if(done) return;
+      done = true;
+      script.remove();
+      reject(new Error(`Timed out loading ${url}`));
+    }, timeoutMs);
+
+    script.src = url;
+    script.async = true;
+    script.onload = () => {
+      if(done) return;
+      done = true;
+      clearTimeout(timer);
+      resolve();
+    };
+    script.onerror = () => {
+      if(done) return;
+      done = true;
+      clearTimeout(timer);
+      script.remove();
+      reject(new Error(`Failed loading ${url}`));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+async function ensureLibrary(lib){
+  if(window[lib.globalName]) return;
+  let lastError = null;
+  for(const url of lib.urls){
+    setStatus(`Loading ${esc(lib.name)}…`);
+    try{
+      await loadScriptWithTimeout(url);
+      if(window[lib.globalName]) return;
+      lastError = new Error(`${lib.name} loaded but did not initialize.`);
+    }catch(err){
+      lastError = err;
+    }
+  }
+  throw new Error(`${lib.name} could not load. A browser extension, firewall, or network setting may be blocking CDN scripts. Last error: ${lastError?.message || 'unknown error'}`);
+}
 
 const FIELD_CANDIDATES = {
   state:['state','state name','jurisdiction'],
@@ -143,8 +212,6 @@ function canonicalize(rawRows){
     for(const [canonical, sourceHeader] of Object.entries(map)){
       row[canonical] = raw[sourceHeader] == null ? '' : String(raw[sourceHeader]).trim();
     }
-
-    // Keep extra columns searchable even if not displayed.
     for(const [k,v] of Object.entries(raw)){
       const clean = normHeader(k);
       if(!(clean in row)) row[clean] = v == null ? '' : String(v).trim();
@@ -162,12 +229,10 @@ function canonicalize(rawRows){
     row.state = normHeader(row.state);
     row.abbr = String(row.abbr || '').toUpperCase().trim();
 
-    // If the state column accidentally contains abbreviations, recover.
     if(row.state.length === 2 && ABBR_TO_STATE[row.state.toUpperCase()]){
       row.abbr = row.state.toUpperCase();
       row.state = ABBR_TO_STATE[row.abbr];
     }
-
     return row;
   }).filter(r => r.state && r.abbr && ABBR_TO_STATE[r.abbr] === r.state);
 }
@@ -177,9 +242,8 @@ function rowsFromSheet(workbook, sheetName){
   const ref = sheet['!ref'];
   if(!ref) return [];
   const range = XLSX.utils.decode_range(ref);
-
-  // Try each of the first 10 rows as the header row, and choose the one that yields the most valid states.
   let best = [];
+
   for(let headerRow = range.s.r; headerRow <= Math.min(range.e.r, range.s.r + 9); headerRow++){
     const headers = [];
     for(let c = range.s.c; c <= range.e.c; c++){
@@ -198,8 +262,6 @@ function rowsFromSheet(workbook, sheetName){
         if(value instanceof Date) value = value.toISOString().slice(0,10);
         if(String(value).trim() !== '') hasData = true;
         raw[header] = value == null ? '' : String(value).trim();
-
-        // Preserve embedded hyperlink targets in a matching URL field.
         if(cell?.l?.Target && !header.toLowerCase().endsWith('url')){
           raw[`${header} URL`] = cell.l.Target;
         }
@@ -223,11 +285,6 @@ function sheetToRows(workbook){
     }
   }
   return { rows: bestRows, sheetName: bestSheet };
-}
-
-function setStatus(msg, isError=false){
-  statusBox.className = `status${isError ? ' error' : ''}`;
-  statusBox.innerHTML = msg;
 }
 
 function get(r,k){ return r[k] ?? ''; }
@@ -327,7 +384,7 @@ function applyRows(nextRows, sheetName){
   rows = nextRows;
   byAbbr = Object.fromEntries(rows.map(r => [r.abbr, r]));
   sortedRows = [...rows].sort((a,b) => a.state.localeCompare(b.state));
-  window.__INSURANCE_ROWS = rows; // useful for browser-console debugging
+  window.__INSURANCE_ROWS = rows;
   populateOptions();
   drawMap();
   show(byAbbr[currentAbbr] ? currentAbbr : rows[0].abbr);
@@ -335,12 +392,14 @@ function applyRows(nextRows, sheetName){
 }
 
 async function loadWorkbook(){
-  setStatus('Loading spreadsheet…');
   details.innerHTML = '<div class="notes">Loading spreadsheet data…</div>';
   try{
-    if(typeof XLSX === 'undefined') throw new Error('The XLSX parser library did not load. Check that the jsDelivr CDN script is reachable.');
+    await ensureLibrary(LIBRARIES[0]);
+    await ensureLibrary(LIBRARIES[1]);
+
+    setStatus('Loading spreadsheet…');
     const url = new URL(WORKBOOK_FILE, window.location.href);
-    url.searchParams.set('v', Date.now().toString()); // bypass browser/GitHub cache after workbook updates
+    url.searchParams.set('v', Date.now().toString());
     const response = await fetch(url.href, { cache:'no-store' });
     if(!response.ok) throw new Error(`Could not load ${WORKBOOK_FILE}. HTTP ${response.status}. The file must be in the same folder as index.html and named exactly ${WORKBOOK_FILE}.`);
 
@@ -355,15 +414,15 @@ async function loadWorkbook(){
     applyRows(loaded.rows, loaded.sheetName);
   }catch(err){
     console.error(err);
-    setStatus(`<strong>Spreadsheet loading error:</strong> ${esc(err.message)}`, true);
+    setStatus(`<strong>Loading error:</strong> ${esc(err.message)}`, true);
     details.innerHTML = `
       <div class="notes">
-        <strong>The map cannot populate because the spreadsheet did not load or parse.</strong><br><br>
-        Confirm these are true:<br>
-        1. <code>${esc(WORKBOOK_FILE)}</code> is in the same GitHub folder as <code>index.html</code>.<br>
-        2. The filename matches exactly, including underscores and capitalization.<br>
-        3. GitHub Pages is publishing from that same branch/folder.<br>
-        4. The workbook still has a State column or state-abbreviation column.
+        <strong>The map cannot populate because a required file or library did not load.</strong><br><br>
+        Most likely fixes:<br>
+        1. Confirm <code>${esc(WORKBOOK_FILE)}</code> is in the same GitHub folder as <code>index.html</code>.<br>
+        2. Confirm the filename matches exactly, including underscores and capitalization.<br>
+        3. Try the live page in an incognito/private window with extensions disabled.<br>
+        4. If your browser/network blocks CDNs, upload local copies of Plotly and SheetJS or use a different network.
       </div>`;
   }
 }
@@ -376,9 +435,8 @@ search.addEventListener('input', e => {
 });
 select.addEventListener('change', e => show(e.target.value));
 reloadBtn.addEventListener('click', loadWorkbook);
-
 window.addEventListener('resize', () => {
-  if(rows.length) Plotly.Plots.resize('map');
+  if(rows.length && window.Plotly) Plotly.Plots.resize('map');
 });
 
 loadWorkbook();
