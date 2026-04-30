@@ -101,6 +101,8 @@ const STATE_TO_ABBR = {
   'Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY'
 };
 const ABBR_TO_STATE = Object.fromEntries(Object.entries(STATE_TO_ABBR).map(([s,a])=>[a,s]));
+const STATE_CODES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+
 
 let rows = [], byAbbr = {}, sortedRows = [], currentAbbr = 'AL', mapClickAttached = false;
 const select = document.getElementById('stateSelect');
@@ -227,14 +229,13 @@ function canonicalize(rawRows){
       abbrRaw = stateRaw.toUpperCase();
       stateRaw = ABBR_TO_STATE[abbrRaw];
     }
-
-    if(!stateRaw && ABBR_TO_STATE[abbrRaw]) stateRaw = ABBR_TO_STATE[abbrRaw];
-    if(!abbrRaw && STATE_TO_ABBR[stateRaw]) abbrRaw = STATE_TO_ABBR[stateRaw];
+    if(abbrRaw && ABBR_TO_STATE[abbrRaw]) stateRaw = ABBR_TO_STATE[abbrRaw];
+    if(stateRaw && STATE_TO_ABBR[stateRaw]) abbrRaw = STATE_TO_ABBR[stateRaw];
 
     row.state = stateRaw;
     row.abbr = abbrRaw;
     return row;
-  }).filter(r => (r.state && STATE_TO_ABBR[r.state]) || (r.abbr && ABBR_TO_STATE[r.abbr]));
+  }).filter(r => r.abbr && ABBR_TO_STATE[r.abbr]);
 }
 
 function rowsFromSheet(workbook, sheetName){
@@ -346,38 +347,49 @@ function show(abbr){
 }
 
 function drawMap(){
-  const locations = rows.map(r => r.abbr);
-  const z = rows.map((_,i) => i + 1);
-  const text = rows.map(r => `${r.state}<br>BI: ${get(r,'BI') || '—'}<br>PD: ${get(r,'PD') || '—'}<br>PIP: ${get(r,'PIP') || '—'}`);
+  // Always draw a known-good 50-state map. Data from the workbook is joined by abbreviation.
+  const locations = STATE_CODES;
+  const z = STATE_CODES.map((_,i) => i + 1);
+  const text = STATE_CODES.map(code => {
+    const r = byAbbr[code];
+    const name = ABBR_TO_STATE[code] || code;
+    return `${name}<br>BI: ${r ? (get(r,'BI') || '—') : '—'}<br>PD: ${r ? (get(r,'PD') || '—') : '—'}<br>PIP: ${r ? (get(r,'PIP') || '—') : '—'}`;
+  });
 
   const trace = {
     type:'choropleth',
     locationmode:'USA-states',
     locations,
     z,
+    zmin:1,
+    zmax:STATE_CODES.length,
     text,
+    customdata:locations,
     hovertemplate:'%{text}<extra></extra>',
     colorscale:[[0,'#dbe7ff'],[1,'#275efe']],
+    autocolorscale:false,
+    reversescale:false,
     showscale:false,
     marker:{line:{color:'#ffffff',width:1.25}}
   };
 
   const layout = {
-    geo:{scope:'usa', projection:{type:'albers usa'}, bgcolor:'rgba(0,0,0,0)'},
+    geo:{scope:'usa', projection:{type:'albers usa'}, showlakes:false, showland:true, landcolor:'#eef2f7', bgcolor:'rgba(0,0,0,0)'},
+    dragmode:false,
     margin:{l:0,r:0,t:0,b:0},
     paper_bgcolor:'rgba(0,0,0,0)',
     plot_bgcolor:'rgba(0,0,0,0)'
   };
 
-  Plotly.react('map', [trace], layout, {displayModeBar:false, responsive:true});
-
-  if(!mapClickAttached){
-    document.getElementById('map').on('plotly_click', e => {
-      const abbr = e.points?.[0]?.location;
-      if(abbr) show(abbr);
+  Plotly.newPlot('map', [trace], layout, {displayModeBar:false, responsive:true, staticPlot:false}).then(() => {
+    const mapDiv = document.getElementById('map');
+    if(mapDiv.removeAllListeners) mapDiv.removeAllListeners('plotly_click');
+    mapDiv.on('plotly_click', e => {
+      const abbr = e.points?.[0]?.location || e.points?.[0]?.customdata;
+      if(abbr && byAbbr[abbr]) show(abbr);
     });
-    mapClickAttached = true;
-  }
+    mapDiv.style.cursor = 'pointer';
+  });
 }
 
 function applyRows(nextRows, sheetName){
