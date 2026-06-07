@@ -1,60 +1,947 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+<link rel="icon" type="image/png" href="reference-icon.png">
+<!-- EQUALIZE_MAP_TOP_BOTTOM_BLUE_SAFE_20260603: reduced map shift and matched map background blue -->
+<!-- RESTORE_MAP_SAFE_SHIFT_20260603: restored working map and only adjusted active geolayer transform safely -->
+<!-- REPAIR_WASHINGTON_TOP_CLIP_SHIFT_DOWN_15_20260603: corrected map center/scale so WA is inside frame with top blue margin -->
+<!-- REDUCE_BOTTOM_BLUE_SPACE_MAP_DOWN_20260603 -->
+<!-- EQUAL_TOP_BOTTOM_MAP_MARGIN_20260603 -->
+<!-- MAP_SHIFT_DOWN_5_TOP_BLUE_MARGIN_20260603 -->
+  <!-- NEW17_MAP_IMAGE2_FIT_WHITE_TEXT_20260603: map adjusted toward image 2 fit; map text kept white -->
+  <!-- NEW17_MAP_FIT_ONLY_20260603_SHIFT_DOWN_ZOOM_OUT: shifted map down slightly and zoomed out to keep continent inside map window -->
+  <!-- NEW17_HEIGHT_FIX_20260603: reduced map panel height and vertical stretch to prevent WA clipping -->
+  <!-- PASS20_VERTICAL_MAP_FILL_CROP -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>US Auto Insurance Requirements Map</title>
+  <title>US Auto Insurance Requirements — PASS20 VERTICAL MAP FILL CROP</title>
+  <script>console.info("US Auto Insurance Requirements D15 loader active");</script>
   <style>
     :root {
-      --bg:#f6f7fb; --panel:#ffffff; --ink:#172033; --muted:#5d687c; --line:#dbe1ea; --accent:#275efe;
-      --soft:#edf2ff; --warn:#fff8df; --warnline:#f3d27a; --warntext:#6f5200;
+      --page:#202326;
+      --panel:#061a31;
+      --panel2:#071e38;
+      --water:#061f3a;
+      --state:#74839a;
+      --stateLine:#3f4f66;
+      --text:#ffffff;
+      --muted:#e7edf7;
+      --blue:#8fc4ff;
+      --line:rgba(156,178,207,.48);
+      --shadow:0 20px 55px rgba(0,0,0,.45);
+      --pad:clamp(24px,2.6vw,42px);
     }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:var(--ink); background:var(--bg); }
-    header { padding:28px clamp(18px,4vw,48px) 14px; }
-    h1 { margin:0 0 8px; font-size:clamp(26px,4vw,42px); letter-spacing:-.04em; }
-    .sub { color:var(--muted); max-width:900px; line-height:1.45; }
-    .notice { margin:16px clamp(18px,4vw,48px) 0; padding:12px 14px; border:1px solid var(--warnline); background:var(--warn); color:var(--warntext); border-radius:16px; line-height:1.45; font-size:14px; }
-    .notice strong { color:#4c3900; }
-    main { display:grid; grid-template-columns:minmax(360px, 1.2fr) minmax(320px, .8fr); gap:20px; padding:12px clamp(18px,4vw,48px) 38px; }
-    .card { background:var(--panel); border:1px solid var(--line); border-radius:22px; box-shadow:0 12px 34px rgba(23,32,51,.06); overflow:hidden; }
-    .map-wrap { min-height:610px; padding:14px; }
-    #map { width:100%; height:580px; }
-    .panel { padding:22px; }
-    .toolbar { display:grid; grid-template-columns:1fr; gap:10px; align-items:center; margin-bottom:16px; }
-    select, input, button { width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:12px; background:#fff; font:inherit; color:var(--ink); }
-    button { cursor:pointer; font-weight:700; background:var(--soft); color:var(--accent); }
-    button:hover { filter:brightness(.98); }
-    .status { margin-bottom:12px; padding:10px 12px; border:1px solid var(--line); border-radius:14px; color:var(--muted); background:#fbfcff; font-size:13px; line-height:1.35; }
-    .status.error { border-color:#f0b5b5; background:#fff0f0; color:#8a2020; }
-    .state-title { display:flex; align-items:baseline; justify-content:space-between; gap:12px; border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:14px; }
-    .state-title h2 { margin:0; font-size:28px; letter-spacing:-.03em; }
-    .pill { font-weight:700; color:var(--accent); background:var(--soft); border-radius:999px; padding:5px 10px; white-space:nowrap; }
-    .grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; margin:16px 0; }
-    .metric { border:1px solid var(--line); border-radius:16px; padding:12px; background:#fbfcff; min-width:0; }
-    .label { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; font-weight:700; }
-    .value { margin-top:5px; font-size:16px; line-height:1.35; overflow-wrap:anywhere; }
-    .wide { grid-column:1 / -1; }
-    h3 { margin:22px 0 10px; font-size:16px; }
-    .sources { display:grid; gap:8px; }
-    .sources a { color:var(--accent); text-decoration:none; border:1px solid var(--line); border-radius:12px; padding:9px 10px; background:#fff; overflow-wrap:anywhere; }
-    .sources a:hover { text-decoration:underline; }
-    .notes { color:var(--muted); line-height:1.45; background:#fbfcff; border:1px solid var(--line); border-radius:16px; padding:12px; }
-    code { background:#edf2ff; padding:1px 4px; border-radius:6px; }
-    footer { color:var(--muted); font-size:13px; padding:0 clamp(18px,4vw,48px) 32px; line-height:1.45; }
-    .footer-inner { border-top:1px solid var(--line); padding-top:16px; }
-    @media (max-width: 900px) { main { grid-template-columns:1fr; } #map { height:500px; } .map-wrap { min-height:520px; } }
+
+    * { box-sizing:border-box; }
+    html, body { min-height:100%; }
+
+    body {
+      margin:0;
+      color:var(--text);
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(circle at 16% 10%, rgba(255,255,255,.045), transparent 31%),
+        radial-gradient(circle at 80% 25%, rgba(255,255,255,.03), transparent 32%),
+        radial-gradient(circle at 42% 98%, rgba(0,0,0,.36), transparent 45%),
+        linear-gradient(135deg, #292c30 0%, #202326 55%, #171a1d 100%);
+      position:relative;
+    }
+
+    body::before {
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      opacity:.18;
+      background-image:
+        radial-gradient(rgba(255,255,255,.11) .7px, transparent .7px),
+        radial-gradient(rgba(0,0,0,.22) .9px, transparent .9px);
+      background-size:5px 5px, 8px 8px;
+      background-position:0 0, 3px 4px;
+      mix-blend-mode:overlay;
+      z-index:-1;
+    }
+
+    .app {
+      width:100%;
+      max-width:2440px;
+      width:calc(100vw - 72px);
+      margin:0 auto;
+      padding:18px 0 24px;
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) minmax(560px, 820px);
+      gap:28px;
+      align-items:start;
+      align-items:start;
+    }
+
+    .left {
+      display:grid;
+      grid-template-rows:auto auto auto auto;
+      gap:14px;
+    }
+
+    .hero {
+      display:grid;
+      grid-template-columns:86px minmax(0,1fr);
+      gap:22px;
+      align-items:center;
+      min-height:118px;
+    }
+
+    .logo {
+      width:80px;
+      height:96px;
+      background:url('reference-icon.png') center/contain no-repeat;
+      filter:drop-shadow(0 12px 24px rgba(0,0,0,.35));
+    }
+
+    h1 {
+      margin:0 0 7px;
+      text-transform:uppercase;
+      font-size:clamp(28px,2.35vw,38px);
+      line-height:1.04;
+      letter-spacing:-.035em;
+      font-weight:650;
+      text-shadow:0 3px 16px rgba(0,0,0,.38);
+    }
+
+    .sub {
+      max-width:920px;
+      color:#f1f5fb;
+      font-size:16px;
+      line-height:1.35;
+      font-weight:400;
+    }
+
+    .notice {
+      min-height:70px;
+      padding:12px 18px 12px 78px;
+      display:flex;
+      align-items:center;
+      border:1px solid #b99768;
+      border-radius:10px;
+      color:#f4e8d2;
+      background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M24 5 45 42H3L24 5Z' fill='none' stroke='%23f1d9ad' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M24 17v12' stroke='%23f1d9ad' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='24' cy='36' r='2.7' fill='%23f1d9ad'/%3E%3C/svg%3E") 18px center/46px 46px no-repeat,
+        rgba(31,34,37,.58);
+      box-shadow:0 12px 28px rgba(0,0,0,.24);
+      font-size:15px;
+      line-height:1.38;
+      font-weight:500;
+    }
+
+    .notice strong {
+      font-weight:700;
+      color:#ffe6b8;
+      text-transform:uppercase;
+    }
+
+    .notice .line2 {
+      display:block;
+      color:#fff2dc;
+      margin-top:2px;
+    }
+
+    .map-card, .side-card {
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:#061f3a;
+      background-clip:padding-box;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      transform:none;
+    }
+
+    .map-card {
+      position:relative;
+      padding:0;
+      min-height:clamp(625px, 65vh, 940px);
+      background: #061f3a;
+    }
+
+    #map {
+      background:#061f3a;
+      width:100%;
+      height:100%;
+      margin:0;
+    }
+
+    /* PASS20: remove the unused top/bottom ocean bands by vertically fitting the
+       rendered Plotly geo layer inside the existing map panel. This keeps the
+       panel size, sidebar layout, state geometry, popup, and workbook behavior unchanged. */
+
+
+    #map .geolayer {
+      transform-box: fill-box;
+      transform-origin: center center;
+      transform: translateY(1.5%) scaleY(1.025);
+    }
+
+    .map-info-card {
+      position:absolute;
+      right:14px;
+      bottom:16px;
+      width:312px;
+      max-height:calc(100% - 36px);
+      padding:12px 14px;
+      border:1px solid rgba(190,204,225,.72);
+      border-radius:10px;
+      background:rgba(5,12,22,.82);
+      box-shadow:0 14px 34px rgba(0,0,0,.48);
+      backdrop-filter:blur(6px);
+      pointer-events:none;
+      z-index:5;
+      overflow:visible;
+    }
+
+    .map-info-card h3 {
+      margin:0 0 10px;
+      font-size:16px;
+      line-height:1;
+      letter-spacing:-.02em;
+      text-transform:uppercase;
+      text-decoration:underline;
+      font-weight:800;
+    }
+
+    .map-info-card .row {
+      display:grid;
+      grid-template-columns:94px 1fr;
+      gap:10px;
+      margin:5px 0;
+      font-size:14px;
+      line-height:1.34;
+    }
+
+    .map-info-card .k { font-weight:800; color:#fff; }
+    .map-info-card .v { color:#fff; text-align:left; }
+    
+    .footer {
+      color:#e3e8f0;
+      font-size:15px;
+      line-height:1.38;
+      font-weight:400;
+      padding:0 4px;
+    }
+
+    .footer code {
+      color:#33a5ff;
+      font-weight:700;
+      background:transparent;
+      padding:0;
+    }
+
+    .side-card {
+      padding:22px 24px 22px;
+      background:#061f3a;
+      min-height:900px;
+    }
+
+    .toolbar {
+      display:grid;
+      gap:12px;
+      padding-bottom:15px;
+      margin-bottom:15px;
+      border-bottom:1px solid rgba(220,230,245,.25);
+    }
+
+    .status { display:none; }
+
+    .toolbar { position:relative; }
+    .toolbar::after {
+      content:"";
+      position:absolute;
+      right:15px;
+      top:13px;
+      width:22px;
+      height:22px;
+      pointer-events:none;
+      background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5' stroke='%23dce9fb' stroke-width='2'/%3E%3Cpath d='M16 16l5 5' stroke='%23dce9fb' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+      opacity:.92;
+    }
+    #stateSearch { padding-right:48px; }
+
+    input, select, button {
+      width:100%;
+      border:0;
+      border-radius:10px;
+      padding:12px 16px;
+      box-shadow:inset 0 0 0 1.5px #4f6f96;
+      background:#06182d;
+      color:#fff;
+      font:inherit;
+      font-size:15px;
+      font-weight:400;
+      outline:none;
+      box-shadow:none;
+    }
+
+    input::placeholder {
+      color:#d6deeb;
+      font-weight:400;
+    }
+
+    select {
+      font-weight:500;
+      text-decoration:underline;
+      cursor:pointer;
+    }
+
+    button {
+      width:max-content;
+      min-width:238px;
+      cursor:pointer;
+      background:#174984;
+      font-weight:600;
+      box-shadow:inset 0 0 0 1.5px #2d5d9f;
+    }
+
+    button:hover {
+      background:#1c4d8b;
+    }
+
+    .state-title {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      padding-bottom:13px;
+      margin-bottom:15px;
+      border-bottom:1px solid rgba(220,230,245,.25);
+    }
+
+    .state-title h2 {
+      margin:0;
+      text-transform:uppercase;
+      font-size:24px;
+      line-height:1.08;
+      letter-spacing:-.025em;
+      font-weight:500;
+    }
+
+    .section-title {
+      margin:15px 0 9px;
+      color:var(--blue);
+      text-transform:uppercase;
+      font-size:14px;
+      letter-spacing:.04em;
+      font-weight:600;
+    }
+
+    .requirements-grid {
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:9px;
+      margin:9px 0 15px;
+    }
+
+    .metric {
+      min-width:0;
+      padding:12px 10px;
+      text-align:center;
+      border:0;
+      border-radius:10px;
+      background:#0d2a49;
+      background-clip:border-box;
+      box-shadow:inset 0 0 0 1.5px #4f6f96;
+    }
+
+    .metric.wide {
+      text-align:center;
+    }
+
+    .label {
+      color:#fff;
+      text-transform:uppercase;
+      font-size:12.5px;
+      letter-spacing:.035em;
+      font-weight:600;
+    }
+
+    .value {
+      margin-top:7px;
+      color:#fff;
+      font-size:15px;
+      line-height:1.28;
+      font-weight:400;
+      overflow-wrap:anywhere;
+    }
+
+    .notes {
+      padding:13px 15px;
+      border:0;
+      border-radius:10px;
+      background:#0d2a49;
+      background-clip:border-box;
+      box-shadow:inset 0 0 0 1.5px #4f6f96;
+      color:#fff;
+      font-size:15px;
+      line-height:1.45;
+      font-weight:400;
+      white-space:pre-wrap;
+      box-shadow:none;
+    }
+
+    .source-group {
+      display:grid;
+      gap:0;
+      margin:10px 0 14px;
+      border:0;
+      border-radius:10px;
+      overflow:hidden;
+      background:#06182d;
+      background-clip:border-box;
+      box-shadow:inset 0 0 0 1.5px #4f6f96;
+    }
+
+    .source-group h4,
+    .source-group a {
+      margin:0;
+      padding:9px 12px;
+      color:#fff;
+      font-size:14.5px;
+      font-weight:400;
+      text-decoration:none;
+      border-bottom:1px solid #4f6f96;
+      background:transparent;
+    }
+
+    .source-group h4 {
+      background:#0d2a49;
+    }
+
+    .source-group a:last-child { border-bottom:0; }
+
+    .source-group a::after {
+      content:" ↗";
+      float:right;
+      color:var(--blue);
+      font-weight:700;
+    }
+
+    .source-group a:hover { background:rgba(35,79,125,.38); }
+
+
+    /* Pixel-stable right panel rendering: avoid subpixel 1px border artifacts by
+       using inset shadows instead of physical borders on the frequently-updated cards. */
+    .metric, .notes, .source-group, input, select, button {
+      border:0;
+      outline:0;
+      background-image:none;
+      box-shadow:inset 0 0 0 1.5px #4f6f96;
+    }
+
+    .source-group h4,
+    .source-group a {
+      border-bottom:0;
+      box-shadow:inset 0 -1.5px 0 #4f6f96;
+    }
+
+    .source-group a:last-child {
+      box-shadow:none;
+    }
+
+
+    /* Final right-panel repaint hardening. These overrides keep text on the CPU text path
+       and replace fragile fractional borders with inset strokes that do not disappear
+       after tab switching or state updates. */
+    .side-card, .side-card * {
+      transform:none !important;
+      filter:none !important;
+      backdrop-filter:none !important;
+      -webkit-backdrop-filter:none !important;
+      text-rendering:auto !important;
+      -webkit-font-smoothing:auto !important;
+    }
+
+    .metric, .notes, .source-group, input, select {
+      border:0 !important;
+      background-image:none !important;
+      box-shadow:inset 0 0 0 2px #4f6f96 !important;
+    }
+
+    button {
+      border:0 !important;
+      background-image:none !important;
+      box-shadow:inset 0 0 0 2px #2d5d9f !important;
+    }
+
+    .source-group h4, .source-group a {
+      border-bottom:0 !important;
+      box-shadow:inset 0 -2px 0 #4f6f96 !important;
+    }
+
+    .source-group a:last-child {
+      box-shadow:none !important;
+    }
+
+
+
+    /* PANEL_SNAP_UI_20260603: The right panel sometimes rasterized on fractional
+       device pixels after browser tab switches, which made text look randomly soft
+       and caused the outer panel stroke to appear broken. Keep the visual design the
+       same, but draw the main side-panel stroke as a 2px overlay and let JS nudge
+       the panel to device-pixel coordinates without using transforms. */
+    .side-card {
+      position:relative !important;
+      border:0 !important;
+      outline:0 !important;
+      background:#061f3a !important;
+      box-shadow:var(--shadow) !important;
+      left:var(--side-card-snap-x, 0px);
+      top:var(--side-card-snap-y, 0px);
+    }
+
+    .side-card::before {
+      content:"";
+      position:absolute;
+      inset:0;
+      border:2px solid rgba(156,178,207,.48);
+      border-radius:12px;
+      pointer-events:none;
+      z-index:20;
+    }
+
+    .side-card > * {
+      position:relative;
+      z-index:1;
+    }
+
+    .requirements-grid {
+      gap:10px;
+    }
+
+
+
+    /* NATIVE_BORDER_UI_20260603:
+       The previous pixel-snap/inset-shadow border fixes reduced the issue but could still
+       place the entire right panel on fractional pixels, making text randomly soft and
+       causing strokes to disappear under browser tab repaint. This final override removes
+       panel nudging, pseudo-element border overlays, inset-shadow strokes, and forced
+       visibility repaints. It uses normal CSS borders only, which is the most stable path
+       across local Firefox/Chrome rendering and tab switching. */
+    .side-card {
+      position:relative !important;
+      left:auto !important;
+      top:auto !important;
+      transform:none !important;
+      filter:none !important;
+      backdrop-filter:none !important;
+      -webkit-backdrop-filter:none !important;
+      border:1px solid rgba(156,178,207,.48) !important;
+      outline:0 !important;
+      background:#061f3a !important;
+      box-shadow:var(--shadow) !important;
+      overflow:visible !important;
+    }
+
+    .side-card::before {
+      content:none !important;
+      display:none !important;
+    }
+
+    .side-card > * {
+      position:relative;
+      z-index:auto !important;
+    }
+
+    .side-card,
+    .side-card * {
+      transform:none !important;
+      filter:none !important;
+      backdrop-filter:none !important;
+      -webkit-backdrop-filter:none !important;
+      text-rendering:auto !important;
+      will-change:auto !important;
+      backface-visibility:visible !important;
+      perspective:none !important;
+    }
+
+    .metric,
+    .notes,
+    .source-group,
+    input,
+    select {
+      border:1px solid #4f6f96 !important;
+      box-shadow:none !important;
+      background-image:none !important;
+    }
+
+    .metric,
+    .notes {
+      background:#0d2a49 !important;
+    }
+
+    input,
+    select,
+    .source-group {
+      background:#06182d !important;
+    }
+
+    button {
+      border:1px solid #2d5d9f !important;
+      box-shadow:none !important;
+      background:#174984 !important;
+      background-image:none !important;
+    }
+
+    button:hover {
+      background:#1c4d8b !important;
+    }
+
+    .source-group {
+      overflow:hidden !important;
+    }
+
+    .source-group h4,
+    .source-group a {
+      border-bottom:1px solid #4f6f96 !important;
+      box-shadow:none !important;
+      background-image:none !important;
+    }
+
+    .source-group h4 {
+      background:#0d2a49 !important;
+    }
+
+    .source-group a:last-child {
+      border-bottom:0 !important;
+      box-shadow:none !important;
+    }
+
+    @media (max-width: 1180px) {
+      .app { grid-template-columns:1fr; }
+      .side-card { min-height:auto; }
+      .map-card { min-height:540px; }
+      #map { height:540px; }
+      .requirements-grid { grid-template-columns:repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width: 1800px) {
+      .app { width:calc(100vw - 48px); grid-template-columns:minmax(0, 1fr) minmax(500px, 560px); gap:24px; padding-top:12px; }
+      .hero { grid-template-columns:76px minmax(0,1fr); min-height:108px; }
+      .logo { width:74px; height:90px; }
+      h1 { font-size:clamp(28px,2.35vw,38px); font-weight:650; }
+      #map, .map-card { height:625px; min-height:625px; }
+    }
+
+    @media (min-width: 2200px) {
+      h1 { font-size:44px; font-weight:650; }
+      .sub { font-size:18px; font-weight:400; max-width:1220px; }
+      .notice { font-size:17px; font-weight:400; min-height:82px; padding-left:88px; background-size:54px 54px; background-position:22px center; }
+      .side-card { padding:28px 30px; }
+      input, select, button { font-size:16px; }
+      .state-title h2 { font-size:30px; font-weight:500; }
+      .section-title { font-size:16px; }
+      .label { font-size:14px; font-weight:600; }
+      .value { font-size:18px; font-weight:400; }
+      .footer { font-size:18px; }
+      .map-info-card { width:326px; max-height:calc(100% - 36px); }
+    }
+
+
+    /* D12_MOBILE_DRAWER_FIX_20260607: On phone/tablet widths, keep the map usable
+       and open the state details as a slide-in drawer after a state is selected. */
+    .mobile-panel-close,
+    .mobile-panel-backdrop {
+      display:none;
+    }
+
+    /* D18_TABLET_PANEL_ONLY_FIX_20260607: mobile/tablet header is only visible in panel-only layouts. */
+    .mobile-top-header,
+    .mobile-notice {
+      display:none;
+    }
+
+    .mobile-title {
+      font-size:16px;
+      line-height:1.15;
+      font-weight:800;
+      color:#ffffff;
+      letter-spacing:.01em;
+    }
+
+    .mobile-sub {
+      margin-top:4px;
+      color:#d8e8f7;
+      font-size:12px;
+      line-height:1.35;
+    }
+
+    .mobile-logo {
+      width:42px;
+      height:52px;
+      flex:0 0 auto;
+      background-image:url('reference-icon.png');
+      background-position:center;
+      background-repeat:no-repeat;
+      background-size:contain;
+    }
+
+    @media (max-width: 768px) {
+      html, body {
+        width:100%;
+        overflow-x:hidden;
+      }
+
+      .app {
+        display:block !important;
+        width:100vw !important;
+        max-width:100vw !important;
+        padding:10px !important;
+        margin:0 !important;
+      }
+
+      .left {
+        width:100%;
+        max-width:100%;
+      }
+
+      .hero {
+        grid-template-columns:54px minmax(0,1fr) !important;
+        min-height:auto !important;
+        padding:10px 10px !important;
+        gap:10px !important;
+      }
+
+      .logo {
+        width:52px !important;
+        height:64px !important;
+      }
+
+      h1 {
+        font-size:22px !important;
+        line-height:1.1 !important;
+      }
+
+      .sub {
+        font-size:13px !important;
+        line-height:1.25 !important;
+      }
+
+      .notice,
+      .footer {
+        font-size:12px !important;
+        line-height:1.35 !important;
+        padding:10px 12px !important;
+        background-image:none !important;
+      }
+
+      .map-card {
+        width:100% !important;
+        height:calc(100vh - 210px) !important;
+        min-height:480px !important;
+        max-height:none !important;
+      }
+
+      #map {
+        width:100% !important;
+        height:calc(100vh - 210px) !important;
+        min-height:480px !important;
+      }
+
+      .map-info-card {
+        display:none !important;
+      }
+
+      .mobile-panel-backdrop {
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.46);
+        z-index:900;
+      }
+
+      body.mobile-panel-open .mobile-panel-backdrop {
+        display:block;
+      }
+
+      .side-card {
+        position:fixed !important;
+        top:0 !important;
+        right:0 !important;
+        left:auto !important;
+        width:min(92vw, 430px) !important;
+        height:100vh !important;
+        max-height:100vh !important;
+        min-height:100vh !important;
+        margin:0 !important;
+        padding:18px 16px 24px !important;
+        overflow-y:auto !important;
+        z-index:1000 !important;
+        border-radius:12px 0 0 12px !important;
+        transform:translateX(105%) !important;
+        transition:transform .24s ease !important;
+      }
+
+      body.mobile-panel-open .side-card {
+        transform:translateX(0) !important;
+      }
+
+      .mobile-panel-close {
+        display:block !important;
+        position:sticky;
+        top:0;
+        z-index:1002;
+        width:100%;
+        margin:0 0 12px;
+        padding:10px 12px;
+        border-radius:9px;
+        font-size:14px;
+        text-align:center;
+      }
+
+      .requirements-grid {
+        grid-template-columns:repeat(2, minmax(0,1fr)) !important;
+      }
+
+      .source-group a,
+      .source-group h4,
+      .metric,
+      .notes {
+        font-size:13px !important;
+      }
+    }
+
+
+
+    /* D19_TABLET_PANEL_ONLY_OVERRIDE_20260607:
+       Keep the approved desktop layout, but force tablet/phone widths into a clean
+       panel-only experience. This block is intentionally last so earlier 1180/1800px
+       rules cannot reintroduce the cramped two-column tablet layout. */
+    @media (max-width: 1100px) {
+      html, body {
+        width:100% !important;
+        min-width:0 !important;
+        overflow-x:hidden !important;
+      }
+
+      .app {
+        display:block !important;
+        width:100% !important;
+        max-width:720px !important;
+        min-width:0 !important;
+        margin:0 auto !important;
+        padding:14px 12px 22px !important;
+      }
+
+      .left,
+      .map-card,
+      #map,
+      .footer,
+      .hero,
+      .notice,
+      .map-info-card,
+      .mobile-panel-backdrop,
+      .mobile-panel-close {
+        display:none !important;
+      }
+
+      .side-card {
+        display:block !important;
+        position:relative !important;
+        inset:auto !important;
+        width:100% !important;
+        max-width:720px !important;
+        min-width:0 !important;
+        height:auto !important;
+        min-height:calc(100vh - 28px) !important;
+        max-height:none !important;
+        margin:0 auto !important;
+        padding:18px 16px 22px !important;
+        overflow:visible !important;
+        transform:none !important;
+        transition:none !important;
+        border-radius:14px !important;
+      }
+
+      .mobile-top-header {
+        display:flex !important;
+        gap:12px !important;
+        align-items:center !important;
+        margin:0 0 12px !important;
+      }
+
+      .mobile-notice {
+        display:block !important;
+        margin:0 0 12px !important;
+        padding:10px 12px !important;
+        border:1px solid var(--gold-border) !important;
+        border-radius:10px !important;
+        color:#f7e7bd !important;
+        background:rgba(60,42,15,.28) !important;
+        font-size:12px !important;
+        line-height:1.35 !important;
+      }
+
+      .toolbar {
+        gap:10px !important;
+        margin-bottom:14px !important;
+      }
+
+      input, select, button {
+        min-height:44px !important;
+        font-size:14px !important;
+      }
+
+      .requirements-grid {
+        grid-template-columns:repeat(2, minmax(0,1fr)) !important;
+        gap:10px !important;
+      }
+
+      .metric {
+        min-height:56px !important;
+      }
+
+      .source-group a {
+        min-height:44px !important;
+        display:flex !important;
+        align-items:center !important;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .app { padding:10px 8px 18px !important; }
+      .side-card { border-radius:10px !important; padding:14px 12px 18px !important; }
+      .requirements-grid { grid-template-columns:1fr !important; }
+      .mobile-title { font-size:15px !important; }
+      .mobile-sub { font-size:12px !important; }
+    }
+
   </style>
 </head>
-<body>
-  <div class="notice"><strong>Research-use advisory:</strong> This website is for research and informational purposes only and should not be used as legal advice. Requirements may change; verify all information against official state sources or consult a qualified professional.</div>
-  <header>
-    <h1>US Auto Insurance Requirements</h1>
-    <div class="sub">Click any state on the map or use the dropdown to view liability minimums, PIP, UM/UIM, statute of limitations, source links, audit status, and notes from the spreadsheet. Updated 4/29/2026</div>
-  </header>
-  <main>
-    <section class="card map-wrap"><div id="map"></div></section>
-    <aside class="card panel">
+<body data-build="D19_TABLET_PANEL_ONLY_OVERRIDE_20260607">
+  <div class="app">
+    <div class="left">
+      <header class="hero">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>US Auto Insurance Requirements</h1>
+          <div class="sub">Click any state on the map or use the dropdown to view minimum insurance requirements, PIP, UM/UIM information, statute of limitations, notes, and official sources.</div>
+        </div>
+      </header>
+
+      <div class="notice"><span><strong>Research-use advisory:</strong> This website is for research and informational purposes only and should not be used as legal advice.<span class="line2">Requirements may change; verify all information against official state sources or consult a qualified professional.</span></span></div>
+
+      <section class="map-card"><div id="map"></div><div id="mapInfoCard" class="map-info-card"></div></section>
+
+      <div class="footer">
+        This site is provided for research and informational purposes only; it is not legal advice and should not be relied on as a substitute for official state sources or qualified legal guidance. Created by Noctyrian, with the help of ChatGPT.
+      </div>
+    </div>
+
+    <aside class="side-card">
+      <div class="mobile-top-header" aria-label="US Auto Insurance Requirements mobile header">
+        <div class="mobile-logo" aria-hidden="true"></div>
+        <div>
+          <div class="mobile-title">US Auto Insurance Requirements</div>
+          <div class="mobile-sub">Select a state to view requirements, policy disclosure, claims deadlines, and official sources.</div>
+        </div>
+      </div>
+      <div class="mobile-notice"><strong>Research-use advisory:</strong> Informational only; verify against official sources or qualified legal guidance.</div>
+      <button id="mobilePanelClose" class="mobile-panel-close" type="button">Close details</button>
       <div id="status" class="status">Starting…</div>
       <div class="toolbar">
         <input id="stateSearch" type="search" placeholder="Search state, coverage, or note…" aria-label="Search state information" />
@@ -63,395 +950,696 @@
       </div>
       <div id="details"></div>
     </aside>
-  </main>
-  <footer><div class="footer-inner">Data loaded dynamically from <code>Auto_Insurance_Requirements.xlsx</code>. Source links reflect URL columns and hyperlinks embedded in the workbook. This site is provided for research and informational purposes only; it is not legal advice and should not be relied on as a substitute for official state sources or qualified legal guidance. Created by Noctyrian, with the help of ChatGPT. 2026</div></footer>
+    <div id="mobilePanelBackdrop" class="mobile-panel-backdrop" aria-hidden="true"></div>
+  </div>
 
 <script>
 const WORKBOOK_FILE = 'Auto_Insurance_Requirements.xlsx';
 
 const LIBRARIES = [
-  {
-    name: 'Plotly map library',
-    globalName: 'Plotly',
-    urls: [
-      'https://cdn.plot.ly/plotly-2.35.2.min.js',
-      'https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js',
-      'https://unpkg.com/plotly.js-dist-min@2.35.2/plotly.min.js'
-    ]
-  },
-  {
-    name: 'Excel parser library',
-    globalName: 'XLSX',
-    urls: [
-      'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
-      'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
-      'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
-    ]
-  }
+  { name:'Plotly map library', globalName:'Plotly', urls:[
+    'https://cdn.plot.ly/plotly-2.35.2.min.js',
+    'https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js',
+    'https://unpkg.com/plotly.js-dist-min@2.35.2/plotly.min.js'
+  ]},
+  { name:'Excel parser library', globalName:'XLSX', urls:[
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+  ]}
 ];
 
 const STATE_TO_ABBR = {
   'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA','Colorado':'CO','Connecticut':'CT',
-  'Delaware':'DE','District of Columbia':'DC','Florida':'FL','Georgia':'GA','Hawaii':'HI','Idaho':'ID','Illinois':'IL',
-  'Indiana':'IN','Iowa':'IA','Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD',
-  'Massachusetts':'MA','Michigan':'MI','Minnesota':'MN','Mississippi':'MS','Missouri':'MO','Montana':'MT','Nebraska':'NE',
-  'Nevada':'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC',
-  'North Dakota':'ND','Ohio':'OH','Oklahoma':'OK','Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI',
-  'South Carolina':'SC','South Dakota':'SD','Tennessee':'TN','Texas':'TX','Utah':'UT','Vermont':'VT','Virginia':'VA',
-  'Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY'
+  'Delaware':'DE','Florida':'FL','Georgia':'GA','Hawaii':'HI','Idaho':'ID','Illinois':'IL','Indiana':'IN','Iowa':'IA',
+  'Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD','Massachusetts':'MA','Michigan':'MI',
+  'Minnesota':'MN','Mississippi':'MS','Missouri':'MO','Montana':'MT','Nebraska':'NE','Nevada':'NV','New Hampshire':'NH',
+  'New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND','Ohio':'OH','Oklahoma':'OK',
+  'Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD','Tennessee':'TN','Texas':'TX',
+  'Utah':'UT','Vermont':'VT','Virginia':'VA','Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY'
 };
 const ABBR_TO_STATE = Object.fromEntries(Object.entries(STATE_TO_ABBR).map(([s,a])=>[a,s]));
-const STATE_CODES = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
+const STATE_CODES = Object.values(STATE_TO_ABBR);
 
+let rows=[], byAbbr={}, sortedRows=[], currentAbbr='FL';
+let policyRows=[], policyByAbbr={};
+let claimsRows=[], claimsByAbbr={};
+let sourceIndexRows=[], sourceIndexByAbbrDataset={};
+let suppressMobileOpen=false;
+const select=document.getElementById('stateSelect');
+const search=document.getElementById('stateSearch');
+const details=document.getElementById('details');
+const statusBox=document.getElementById('status');
+const reloadBtn=document.getElementById('reloadBtn');
+const mobilePanelClose=document.getElementById('mobilePanelClose');
+const mobilePanelBackdrop=document.getElementById('mobilePanelBackdrop');
 
-let rows = [], byAbbr = {}, sortedRows = [], currentAbbr = 'AL', mapClickAttached = false;
-const select = document.getElementById('stateSelect');
-const search = document.getElementById('stateSearch');
-const details = document.getElementById('details');
-const statusBox = document.getElementById('status');
-const reloadBtn = document.getElementById('reloadBtn');
-
-function esc(s){return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));}
-function normHeader(h){return String(h ?? '').trim().replace(/\s+/g,' ');}
+function esc(s){return String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));}
+function normHeader(h){return String(h??'').trim().replace(/\s+/g,' ');}
 function normKey(k){return normHeader(k).toLowerCase().replace(/[^a-z0-9]+/g,'');}
 function addr(r,c){return XLSX.utils.encode_cell({r,c});}
-function setStatus(msg, isError=false){
-  statusBox.className = `status${isError ? ' error' : ''}`;
-  statusBox.innerHTML = msg;
-}
+function get(r,k){return r?.[k]??'';}
+function setStatus(msg,isError=false){statusBox.className=`status${isError?' error':''}`;statusBox.innerHTML=msg;}
 
-function loadScriptWithTimeout(url, timeoutMs=12000){
-  return new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    let done = false;
-    const timer = setTimeout(() => {
-      if(done) return;
-      done = true;
-      script.remove();
-      reject(new Error(`Timed out loading ${url}`));
-    }, timeoutMs);
-
-    script.src = url;
-    script.async = true;
-    script.onload = () => {
-      if(done) return;
-      done = true;
-      clearTimeout(timer);
-      resolve();
-    };
-    script.onerror = () => {
-      if(done) return;
-      done = true;
-      clearTimeout(timer);
-      script.remove();
-      reject(new Error(`Failed loading ${url}`));
-    };
+function loadScriptWithTimeout(url,timeoutMs=12000){
+  return new Promise((resolve,reject)=>{
+    const script=document.createElement('script'); let done=false;
+    const timer=setTimeout(()=>{if(done)return;done=true;script.remove();reject(new Error(`Timed out loading ${url}`));},timeoutMs);
+    script.src=url; script.async=true;
+    script.onload=()=>{if(done)return;done=true;clearTimeout(timer);resolve();};
+    script.onerror=()=>{if(done)return;done=true;clearTimeout(timer);script.remove();reject(new Error(`Failed loading ${url}`));};
     document.head.appendChild(script);
   });
 }
-
 async function ensureLibrary(lib){
   if(window[lib.globalName]) return;
-  let lastError = null;
+  let lastError=null;
   for(const url of lib.urls){
-    setStatus(`Loading ${esc(lib.name)}…`);
-    try{
-      await loadScriptWithTimeout(url);
-      if(window[lib.globalName]) return;
-      lastError = new Error(`${lib.name} loaded but did not initialize.`);
-    }catch(err){
-      lastError = err;
-    }
+    try{ await loadScriptWithTimeout(url); if(window[lib.globalName]) return; }
+    catch(err){ lastError=err; }
   }
-  throw new Error(`${lib.name} could not load. A browser extension, firewall, or network setting may be blocking CDN scripts. Last error: ${lastError?.message || 'unknown error'}`);
+  throw new Error(`${lib.name} could not load. Last error: ${lastError?.message||'unknown error'}`);
 }
 
 const FIELD_CANDIDATES = {
-  state:['state','state name','jurisdiction'],
-  abbr:['abbr','abbreviation','state abbreviation','code','state code'],
-  BI:['BI','Bodily Injury','Bodily Injury Liability','BI Minimum','BI Limits'],
-  PD:['PD','Property Damage','Property Damage Liability','PD Minimum','PD Limits'],
-  PIP:['PIP','Personal Injury Protection','No Fault','No-Fault'],
-  UM:['UM','Uninsured Motorist','Uninsured Motorist Coverage'],
-  UIM:['UIM','Underinsured Motorist','Underinsured Motorist Coverage'],
-  'BI SOL':['BI SOL','BI Statute of Limitations','Bodily Injury SOL','Personal Injury SOL'],
-  'PD SOL':['PD SOL','PD Statute of Limitations','Property Damage SOL'],
-  'BI Source':['BI Source','Bodily Injury Source'],
-  'BI Source URL':['BI Source URL','Bodily Injury Source URL','BI URL'],
-  'PD Source':['PD Source','Property Damage Source'],
-  'PD Source URL':['PD Source URL','Property Damage Source URL','PD URL'],
-  'PIP Source':['PIP Source','Personal Injury Protection Source'],
-  'PIP Source URL':['PIP Source URL','Personal Injury Protection Source URL','PIP URL'],
-  'UM/UIM Source':['UM/UIM Source','UM Source','UIM Source','Uninsured Motorist Source'],
-  'UM/UIM Source URL':['UM/UIM Source URL','UM Source URL','UIM Source URL','Uninsured Motorist Source URL'],
-  'BI SOL Source':['BI SOL Source','Bodily Injury SOL Source','Personal Injury SOL Source'],
-  'BI SOL Source URL':['BI SOL Source URL','Bodily Injury SOL Source URL','Personal Injury SOL Source URL'],
-  'PD SOL Source':['PD SOL Source','Property Damage SOL Source'],
-  'PD SOL Source URL':['PD SOL Source URL','Property Damage SOL Source URL'],
-  'Effective Date':['Effective Date','Effective','Date'],
-  'Recent Change / Audit Status':['Recent Change / Audit Status','Audit Status','Recent Change','Status'],
-  Notes:['Notes','Note','Comments','Comment']
+  state:['State','state','state name','jurisdiction'], abbr:['Abbr','ABBR','abbr','state abbreviation','state code','code'],
+  BI:['BI','Bodily Injury','Bodily Injury Liability','BI Minimum','BI Limits'], PD:['PD','Property Damage','Property Damage Liability','PD Minimum','PD Limits'],
+  PIP:['PIP','Personal Injury Protection','No Fault','No-Fault'], UM:['UM','Uninsured Motorist','Uninsured Motorist Coverage'], UIM:['UIM','Underinsured Motorist','Underinsured Motorist Coverage'],
+  'BI SOL':['BI SOL','BI Statute of Limitations','Bodily Injury SOL','Personal Injury SOL'], 'PD SOL':['PD SOL','PD Statute of Limitations','Property Damage SOL'],
+  'BI Source':['BI Source','Bodily Injury Source'], 'BI Source URL':['BI Source URL','Bodily Injury Source URL','BI URL'],
+  'PD Source':['PD Source','Property Damage Source'], 'PD Source URL':['PD Source URL','Property Damage Source URL','PD URL'],
+  'PIP Source':['PIP Source','Personal Injury Protection Source'], 'PIP Source URL':['PIP Source URL','Personal Injury Protection Source URL','PIP URL'],
+  'UM/UIM Source':['UM/UIM Source','UM Source','UIM Source','Uninsured Motorist Source'], 'UM/UIM Source URL':['UM/UIM Source URL','UM Source URL','UIM Source URL','Uninsured Motorist Source URL'],
+  'BI SOL Source':['BI SOL Source','Bodily Injury SOL Source','Personal Injury SOL Source'], 'BI SOL Source URL':['BI SOL Source URL','Bodily Injury SOL Source URL','Personal Injury SOL Source URL'],
+  'PD SOL Source':['PD SOL Source','Property Damage SOL Source'], 'PD SOL Source URL':['PD SOL Source URL','Property Damage SOL Source URL'],
+  'Effective Date':['Effective Date','Effective','Date'], Notes:['Notes','Note','Comments','Comment']
+};
+const POLICY_FIELD_CANDIDATES = {
+  state:['State','state','state name','jurisdiction'],
+  'Disclosure Required':['Disclosure Required','Disclosure','Required'],
+  Requestor:['Requestor','Requester','Who May Request'],
+  Deadline:['Deadline','Time Limit','Response Deadline'],
+  'Required Information':['Required Information','Information Required','Disclosure Information'],
+  'Statute Citation':['Statute Citation','Citation','Authority'],
+  'Statute URL':['Statute URL','URL','Source URL'],
+  Notes:['Notes','Note','Comments']
+};
+const CLAIMS_FIELD_CANDIDATES = {
+  state:['State','state','state name','jurisdiction'],
+  'Ack Deadline':['Ack Deadline','Acknowledgment Deadline','Acknowledgement Deadline','Claim Acknowledgment Deadline'],
+  'Investigation Deadline':['Investigation Deadline','Investigation','Claim Investigation Deadline'],
+  'Payment Deadline':['Payment Deadline','Payment','Claim Payment Deadline'],
+  Notes:['Notes','Note','Comments'],
+  Citation:['Citation','Authority','Statute Citation'],
+  URL:['URL','Source URL','Statute URL']
 };
 
-function findHeader(headers, candidates){
-  const hs = headers.map(h => [h, normKey(h)]).filter(([,k]) => k);
-  for(const c of candidates){ const k = normKey(c); const hit = hs.find(([,h]) => h === k); if(hit) return hit[0]; }
-  for(const c of candidates){ const k = normKey(c); const hit = hs.find(([,h]) => h.includes(k) || k.includes(h)); if(hit) return hit[0]; }
+const PUBLIC_SEARCH_FIELDS=['state','abbr','BI','PD','PIP','UM','UIM','BI SOL','PD SOL','Notes','Ack Deadline','Investigation Deadline','Payment Deadline','Claims Notes'];
+
+function findHeader(headers,candidates){
+  const hs=headers.map(h=>[h,normKey(h)]).filter(([,k])=>k);
+  for(const c of candidates){const k=normKey(c); const hit=hs.find(([,h])=>h===k); if(hit) return hit[0];}
+  for(const c of candidates){const k=normKey(c); const hit=hs.find(([,h])=>h.includes(k)||k.includes(h)); if(hit) return hit[0];}
   return null;
 }
-
 function canonicalize(rawRows){
   if(!rawRows.length) return [];
-  const headers = Array.from(new Set(rawRows.flatMap(row => Object.keys(row))));
-  const map = {};
-  for(const [canonical, candidates] of Object.entries(FIELD_CANDIDATES)){
-    const found = findHeader(headers, candidates);
-    if(found) map[canonical] = found;
+  const headers=Array.from(new Set(rawRows.flatMap(row=>Object.keys(row))));
+  const map={};
+  for(const [canonical,candidates] of Object.entries(FIELD_CANDIDATES)){
+    const found=findHeader(headers,candidates); if(found) map[canonical]=found;
   }
-
-  return rawRows.map(raw => {
-    const row = {};
-    for(const [canonical, sourceHeader] of Object.entries(map)){
-      row[canonical] = raw[sourceHeader] == null ? '' : String(raw[sourceHeader]).trim();
+  return rawRows.map(raw=>{
+    const row={};
+    for(const [canonical,sourceHeader] of Object.entries(map)){
+      row[canonical]=raw[sourceHeader]==null?'':String(raw[sourceHeader]).trim();
     }
-    for(const [k,v] of Object.entries(raw)){
-      const clean = normHeader(k);
-      if(!(clean in row)) row[clean] = v == null ? '' : String(v).trim();
-    }
-
-    let stateRaw = row.state || row.State || row[map.state] || row['State Name'] || row.Jurisdiction || '';
-    let abbrRaw = row.abbr || row.Abbr || row.ABBR || row[map.abbr] || row['State Abbreviation'] || row.Code || '';
-
-    stateRaw = normHeader(stateRaw).replace(/\u00A0/g, ' ');
-    abbrRaw = String(abbrRaw || '').replace(/\u00A0/g, ' ').trim().toUpperCase();
-
-    if(stateRaw.length === 2 && ABBR_TO_STATE[stateRaw.toUpperCase()]){
-      abbrRaw = stateRaw.toUpperCase();
-      stateRaw = ABBR_TO_STATE[abbrRaw];
-    }
-    if(abbrRaw && ABBR_TO_STATE[abbrRaw]) stateRaw = ABBR_TO_STATE[abbrRaw];
-    if(stateRaw && STATE_TO_ABBR[stateRaw]) abbrRaw = STATE_TO_ABBR[stateRaw];
-
-    row.state = stateRaw;
-    row.abbr = abbrRaw;
+    let stateRaw=row.state||raw[map.state]||raw['State Name']||raw.Jurisdiction||'';
+    let abbrRaw=row.abbr||raw[map.abbr]||raw['State Abbreviation']||raw.Code||'';
+    stateRaw=normHeader(stateRaw).replace(/\u00A0/g,' ');
+    abbrRaw=String(abbrRaw||'').replace(/\u00A0/g,' ').trim().toUpperCase();
+    if(stateRaw.length===2 && ABBR_TO_STATE[stateRaw.toUpperCase()]){abbrRaw=stateRaw.toUpperCase();stateRaw=ABBR_TO_STATE[abbrRaw];}
+    if(abbrRaw && ABBR_TO_STATE[abbrRaw]) stateRaw=ABBR_TO_STATE[abbrRaw];
+    if(stateRaw && STATE_TO_ABBR[stateRaw]) abbrRaw=STATE_TO_ABBR[stateRaw];
+    row.state=stateRaw; row.abbr=abbrRaw;
     return row;
-  }).filter(r => r.abbr && ABBR_TO_STATE[r.abbr]);
+  }).filter(r=>r.abbr && ABBR_TO_STATE[r.abbr]);
 }
-
-function rowsFromSheet(workbook, sheetName){
-  const sheet = workbook.Sheets[sheetName];
-  const ref = sheet['!ref'];
-  if(!ref) return [];
-  const range = XLSX.utils.decode_range(ref);
-  let best = [];
-
-  for(let headerRow = range.s.r; headerRow <= Math.min(range.e.r, range.s.r + 9); headerRow++){
-    const headers = [];
-    for(let c = range.s.c; c <= range.e.c; c++){
-      headers.push(normHeader(sheet[addr(headerRow,c)]?.v || sheet[addr(headerRow,c)]?.w || ''));
-    }
-
-    const rawRows = [];
-    for(let r = headerRow + 1; r <= range.e.r; r++){
-      const raw = {};
-      let hasData = false;
-      headers.forEach((header, i) => {
-        if(!header) return;
-        const c = range.s.c + i;
-        const cell = sheet[addr(r,c)];
-        let value = cell?.w ?? cell?.v ?? '';
-        if(value instanceof Date) value = value.toISOString().slice(0,10);
-        if(String(value).trim() !== '') hasData = true;
-        raw[header] = value == null ? '' : String(value).trim();
-        if(cell?.l?.Target && !header.toLowerCase().endsWith('url')){
-          raw[`${header} URL`] = cell.l.Target;
-        }
+function rowsFromSheet(workbook,sheetName){
+  const sheet=workbook.Sheets[sheetName]; const ref=sheet['!ref']; if(!ref) return [];
+  const range=XLSX.utils.decode_range(ref); let best=[];
+  for(let headerRow=range.s.r; headerRow<=Math.min(range.e.r, range.s.r+9); headerRow++){
+    const headers=[];
+    for(let c=range.s.c;c<=range.e.c;c++) headers.push(normHeader(sheet[addr(headerRow,c)]?.v||sheet[addr(headerRow,c)]?.w||''));
+    const rawRows=[];
+    for(let r=headerRow+1;r<=range.e.r;r++){
+      const raw={}; let hasData=false;
+      headers.forEach((header,i)=>{
+        if(!header) return; const c=range.s.c+i; const cell=sheet[addr(r,c)];
+        let value=cell?.w??cell?.v??''; if(value instanceof Date) value=value.toISOString().slice(0,10);
+        if(String(value).trim()!=='') hasData=true;
+        raw[header]=value==null?'':String(value).trim();
+        if(cell?.l?.Target && !header.toLowerCase().endsWith('url')) raw[`${header} URL`]=cell.l.Target;
       });
       if(hasData) rawRows.push(raw);
     }
-
-    const candidate = canonicalize(rawRows);
-    if(candidate.length > best.length) best = candidate;
+    const candidate=canonicalize(rawRows); if(candidate.length>best.length) best=candidate;
   }
   return best;
 }
 
-function sheetToRows(workbook){
-  let bestRows = [], bestSheet = '';
-  for(const sheetName of workbook.SheetNames){
-    const candidate = rowsFromSheet(workbook, sheetName);
-    if(candidate.length > bestRows.length){
-      bestRows = candidate;
-      bestSheet = sheetName;
-    }
+function canonicalizePolicy(rawRows){
+  if(!rawRows.length) return [];
+  const headers=Array.from(new Set(rawRows.flatMap(row=>Object.keys(row))));
+  const map={};
+  for(const [canonical,candidates] of Object.entries(POLICY_FIELD_CANDIDATES)){
+    const found=findHeader(headers,candidates); if(found) map[canonical]=found;
   }
-  return { rows: bestRows, sheetName: bestSheet };
+  return rawRows.map(raw=>{
+    const row={};
+    for(const [canonical,sourceHeader] of Object.entries(map)){
+      row[canonical]=raw[sourceHeader]==null?'':String(raw[sourceHeader]).trim();
+    }
+    let stateRaw=row.state||raw[map.state]||'';
+    stateRaw=normHeader(stateRaw).replace(/\u00A0/g,' ');
+    let abbrRaw='';
+    if(stateRaw.length===2 && ABBR_TO_STATE[stateRaw.toUpperCase()]){abbrRaw=stateRaw.toUpperCase();stateRaw=ABBR_TO_STATE[abbrRaw];}
+    if(stateRaw && STATE_TO_ABBR[stateRaw]) abbrRaw=STATE_TO_ABBR[stateRaw];
+    row.state=stateRaw; row.abbr=abbrRaw;
+    return row;
+  }).filter(r=>r.abbr && ABBR_TO_STATE[r.abbr]);
+}
+function policyRowsFromSheet(workbook,sheetName='Policy Disclosures'){
+  const sheet=workbook.Sheets[sheetName]; if(!sheet||!sheet['!ref']) return [];
+  const range=XLSX.utils.decode_range(sheet['!ref']); let best=[];
+  for(let headerRow=range.s.r; headerRow<=Math.min(range.e.r, range.s.r+9); headerRow++){
+    const headers=[];
+    for(let c=range.s.c;c<=range.e.c;c++) headers.push(normHeader(sheet[addr(headerRow,c)]?.v||sheet[addr(headerRow,c)]?.w||''));
+    const rawRows=[];
+    for(let r=headerRow+1;r<=range.e.r;r++){
+      const raw={}; let hasData=false;
+      headers.forEach((header,i)=>{
+        if(!header) return; const c=range.s.c+i; const cell=sheet[addr(r,c)];
+        let value=cell?.w??cell?.v??''; if(value instanceof Date) value=value.toISOString().slice(0,10);
+        if(String(value).trim()!=='') hasData=true;
+        raw[header]=value==null?'':String(value).trim();
+        if(cell?.l?.Target && !header.toLowerCase().endsWith('url')) raw[`${header} URL`]=cell.l.Target;
+      });
+      if(hasData) rawRows.push(raw);
+    }
+    const candidate=canonicalizePolicy(rawRows); if(candidate.length>best.length) best=candidate;
+  }
+  return best;
 }
 
-function get(r,k){ return r[k] ?? ''; }
-function link(label,url){
-  const u = String(url || '').trim();
-  if(!u) return '';
-  return `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(label || u)}</a>`;
+
+function canonicalizeClaims(rawRows){
+  if(!rawRows.length) return [];
+  const headers=Array.from(new Set(rawRows.flatMap(row=>Object.keys(row))));
+  const map={};
+  for(const [canonical,candidates] of Object.entries(CLAIMS_FIELD_CANDIDATES)){
+    const found=findHeader(headers,candidates); if(found) map[canonical]=found;
+  }
+  return rawRows.map(raw=>{
+    const row={};
+    for(const [canonical,sourceHeader] of Object.entries(map)){
+      row[canonical]=raw[sourceHeader]==null?'':String(raw[sourceHeader]).trim();
+    }
+    let stateRaw=row.state||raw[map.state]||'';
+    stateRaw=normHeader(stateRaw).replace(/\u00A0/g,' ');
+    let abbrRaw='';
+    if(stateRaw.length===2 && ABBR_TO_STATE[stateRaw.toUpperCase()]){abbrRaw=stateRaw.toUpperCase();stateRaw=ABBR_TO_STATE[abbrRaw];}
+    if(stateRaw && STATE_TO_ABBR[stateRaw]) abbrRaw=STATE_TO_ABBR[stateRaw];
+    row.state=stateRaw; row.abbr=abbrRaw;
+    return row;
+  }).filter(r=>r.abbr && ABBR_TO_STATE[r.abbr]);
+}
+function claimsRowsFromSheet(workbook,sheetName='Claims_Deadlines_Website'){
+  const sheet=workbook.Sheets[sheetName]; if(!sheet||!sheet['!ref']) return [];
+  const range=XLSX.utils.decode_range(sheet['!ref']); let best=[];
+  for(let headerRow=range.s.r; headerRow<=Math.min(range.e.r, range.s.r+9); headerRow++){
+    const headers=[];
+    for(let c=range.s.c;c<=range.e.c;c++) headers.push(normHeader(sheet[addr(headerRow,c)]?.v||sheet[addr(headerRow,c)]?.w||''));
+    const rawRows=[];
+    for(let r=headerRow+1;r<=range.e.r;r++){
+      const raw={}; let hasData=false;
+      headers.forEach((header,i)=>{
+        if(!header) return; const c=range.s.c+i; const cell=sheet[addr(r,c)];
+        let value=cell?.w??cell?.v??''; if(value instanceof Date) value=value.toISOString().slice(0,10);
+        if(String(value).trim()!=='') hasData=true;
+        raw[header]=value==null?'':String(value).trim();
+        if(cell?.l?.Target && !header.toLowerCase().endsWith('url')) raw[`${header} URL`]=cell.l.Target;
+      });
+      if(hasData) rawRows.push(raw);
+    }
+    const candidate=canonicalizeClaims(rawRows); if(candidate.length>best.length) best=candidate;
+  }
+  return best;
+}
+
+
+function rawObjectsFromSheet(workbook,sheetName){
+  const sheet=workbook.Sheets[sheetName];
+  if(!sheet||!sheet['!ref']) return [];
+  const range=XLSX.utils.decode_range(sheet['!ref']);
+  let best=[];
+  for(let headerRow=range.s.r; headerRow<=Math.min(range.e.r, range.s.r+9); headerRow++){
+    const headers=[];
+    for(let c=range.s.c;c<=range.e.c;c++){
+      headers.push(normHeader(sheet[addr(headerRow,c)]?.v||sheet[addr(headerRow,c)]?.w||''));
+    }
+    const rawRows=[];
+    for(let r=headerRow+1;r<=range.e.r;r++){
+      const raw={}; let hasData=false;
+      headers.forEach((header,i)=>{
+        if(!header) return;
+        const c=range.s.c+i;
+        const cell=sheet[addr(r,c)];
+        let value=cell?.w??cell?.v??'';
+        if(value instanceof Date) value=value.toISOString().slice(0,10);
+        if(String(value).trim()!=='') hasData=true;
+        raw[header]=value==null?'':String(value).trim();
+        if(cell?.l?.Target && !header.toLowerCase().endsWith('url')) raw[`${header} URL`]=cell.l.Target;
+      });
+      if(hasData) rawRows.push(raw);
+    }
+    // Prefer the header row that produces the most source-index-like rows.
+    const score=rawRows.reduce((sum,row)=>sum + (row.State?1:0) + (row.Dataset?1:0) + (row.Citation?1:0) + (row.URL?1:0), 0);
+    const bestScore=best.reduce((sum,row)=>sum + (row.State?1:0) + (row.Dataset?1:0) + (row.Citation?1:0) + (row.URL?1:0), 0);
+    if(rawRows.length && score>=bestScore) best=rawRows;
+  }
+  return best;
+}
+
+function sourceIndexRowsFromSheet(workbook,explicitName){
+  const sheetName=explicitName&&workbook.Sheets[explicitName]?explicitName:null;
+  if(!sheetName) return [];
+  const localRawObjectsFromSheet=(wb,name)=>{
+    const sheet=wb.Sheets[name];
+    if(!sheet||!sheet['!ref']) return [];
+    const range=XLSX.utils.decode_range(sheet['!ref']);
+    let best=[];
+    for(let headerRow=range.s.r; headerRow<=Math.min(range.e.r, range.s.r+9); headerRow++){
+      const headers=[];
+      for(let c=range.s.c;c<=range.e.c;c++) headers.push(normHeader(sheet[addr(headerRow,c)]?.v||sheet[addr(headerRow,c)]?.w||''));
+      const rawRows=[];
+      for(let r=headerRow+1;r<=range.e.r;r++){
+        const raw={}; let hasData=false;
+        headers.forEach((header,i)=>{
+          if(!header) return;
+          const c=range.s.c+i;
+          const cell=sheet[addr(r,c)];
+          let value=cell?.w??cell?.v??'';
+          if(value instanceof Date) value=value.toISOString().slice(0,10);
+          if(String(value).trim()!=='') hasData=true;
+          raw[header]=value==null?'':String(value).trim();
+          if(cell?.l?.Target && !header.toLowerCase().endsWith('url')) raw[`${header} URL`]=cell.l.Target;
+        });
+        if(hasData) rawRows.push(raw);
+      }
+      const score=rawRows.reduce((sum,row)=>sum + (row.State?1:0) + (row.Dataset?1:0) + (row.Citation?1:0) + (row.URL?1:0), 0);
+      const bestScore=best.reduce((sum,row)=>sum + (row.State?1:0) + (row.Dataset?1:0) + (row.Citation?1:0) + (row.URL?1:0), 0);
+      if(rawRows.length && score>=bestScore) best=rawRows;
+    }
+    return best;
+  };
+  const rawRows=(typeof rawObjectsFromSheet==='function') ? rawObjectsFromSheet(workbook,sheetName) : localRawObjectsFromSheet(workbook,sheetName);
+  return rawRows.map(raw=>{
+    const state=String(raw.State||'').trim();
+    const abbr=STATE_TO_ABBR[state] || String(raw.Abbr||raw.ABBR||'').trim().toUpperCase();
+    return {
+      state, abbr,
+      Dataset:String(raw.Dataset||'').trim(),
+      'Authority Type':String(raw['Authority Type']||'').trim(),
+      Citation:String(raw.Citation||'').trim(),
+      URL:String(raw.URL||'').trim(),
+      Notes:String(raw.Notes||'').trim()
+    };
+  }).filter(r=>r.abbr&&r.Dataset&&r.URL);
+}
+function buildSourceIndexLookup(sourceRows){
+  const lookup={};
+  sourceRows.forEach(r=>{
+    lookup[r.abbr]=lookup[r.abbr]||{};
+    lookup[r.abbr][String(r.Dataset||'').toLowerCase()]=r;
+  });
+  return lookup;
+}
+
+// D9_MINIMUMS_LOADER_HARDENING_20260607: minimum requirements are selected only from minimums-like sheets by field coverage.
+function scoreMinimumRows(candidate){
+  if(!candidate.length) return -1;
+  const required=['BI','PD'];
+  const useful=['PIP','UM','UIM','BI SOL','PD SOL','BI Source','PD Source','Notes'];
+  const requiredHits=candidate.reduce((sum,r)=>sum+required.filter(f=>String(get(r,f)||'').trim()).length,0);
+  const usefulHits=candidate.reduce((sum,r)=>sum+useful.filter(f=>String(get(r,f)||'').trim()).length,0);
+  // State-only audit sheets can contain 50+ rows, so minimums sheets must win by field coverage, not row count alone.
+  return (requiredHits*1000) + (usefulHits*10) + candidate.length;
+}
+function sheetToRows(workbook){
+  const preferredSheets=['Auto Insurance Minimums','Minimum Requirements','Minimums'];
+  let bestRows=[],bestSheet='',bestScore=-1;
+  for(const sheetName of preferredSheets){
+    if(!workbook.Sheets[sheetName]) continue;
+    const candidate=rowsFromSheet(workbook,sheetName);
+    const score=scoreMinimumRows(candidate)+500000;
+    if(candidate.length && score>bestScore){bestRows=candidate;bestSheet=sheetName;bestScore=score;}
+  }
+  for(const sheetName of workbook.SheetNames){
+    const candidate=rowsFromSheet(workbook,sheetName);
+    const score=scoreMinimumRows(candidate);
+    if(candidate.length && score>bestScore){bestRows=candidate;bestSheet=sheetName;bestScore=score;}
+  }
+  return {rows:bestRows,sheetName:bestSheet};
 }
 function metric(label,value,wide=false){
-  return `<div class="metric ${wide?'wide':''}"><div class="label">${esc(label)}</div><div class="value">${esc(value || '—')}</div></div>`;
+  return `<div class="metric ${wide?'wide':''}"><div class="label">${esc(label)}</div><div class="value">${esc(value||'—')}</div></div>`;
 }
-
-function populateOptions(list=sortedRows){
-  select.innerHTML = '';
-  list.forEach(r => {
-    const opt = document.createElement('option');
-    opt.value = r.abbr;
-    opt.textContent = `${r.state} (${r.abbr})`;
-    select.appendChild(opt);
-  });
+function looksLikeExternalUrl(u){
+  const v=String(u||'').trim();
+  if(!v) return false;
+  if(/^(none|n\/a|na|null|undefined|not confirmed|not located)$/i.test(v)) return false;
+  if(/[\s<>]/.test(v)) return false;
+  if(/^[a-z][a-z0-9+.-]*:/i.test(v)) return /^https?:\/\//i.test(v);
+  return /^(www\.)?[-a-z0-9]+(\.[-a-z0-9]+)+(\/|$)/i.test(v);
 }
-
+function normalizeUrl(url){
+  let u=String(url||'').trim();
+  if(!looksLikeExternalUrl(u)) return '';
+  if(!/^https?:\/\//i.test(u)) u='https://'+u.replace(/^\/+/,'');
+  // Never allow workbook data to become a localhost/file-relative source link.
+  if(/^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:|\/|$)/i.test(u)) return '';
+  return u;
+}
+function makeSourceLink(label,url){const u=normalizeUrl(url); if(!u) return ''; return `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>`;}
+function sourceGroup(title,links){const valid=links.filter(Boolean); if(!valid.length) return ''; return `<div class="source-group"><h4>${esc(title)}</h4>${valid.join('')}</div>`;}
+function uniqueLinks(links){
+  const seen=new Set();
+  return links.filter(link=>{const key=String(link).replace(/>.*$/,'>').toLowerCase(); if(seen.has(key)) return false; seen.add(key); return true;});
+}
+function flStatuteUrl(section){
+  const sec=String(section||'').trim();
+  const chapter=Number(sec.split('.')[0]);
+  if(!chapter) return '';
+  const start=Math.floor(chapter/100)*100;
+  const end=start+99;
+  const pad=n=>String(n).padStart(4,'0');
+  return `https://www.leg.state.fl.us/Statutes/index.cfm?App_mode=Display_Statute&URL=${pad(start)}-${pad(end)}/${pad(chapter)}/Sections/${pad(chapter)}.${sec.split('.').slice(1).join('.')}.html`;
+}
+function riStatuteUrl(title,chapter,section){
+  return `https://webserver.rilegislature.gov/Statutes/TITLE${title}/${title}-${chapter}/${title}-${chapter}-${section}.htm`;
+}
+function derivedLinksFromCitation(citation,url){
+  const c=String(citation||'');
+  const out=[];
+  const add=(label,href)=>{const u=normalizeUrl(href); if(u) out.push(makeSourceLink(label,u));};
+  // Florida statutory sections, including multiple-section citations.
+  if(/Fla\. Stat\./i.test(c)){
+    const matches=[...c.matchAll(/(?:§+\s*)?(\d{2,4}\.\d+[A-Za-z0-9.]*)/g)].map(m=>m[1]);
+    matches.forEach(sec=>add(`Fla. Stat. § ${sec}`,flStatuteUrl(sec)));
+  }
+  // Washington WAC and RCW direct section pages.
+  [...c.matchAll(/WAC\s+(\d+[A-Za-z]?-\d+[A-Za-z]?-\d+[A-Za-z]?)/gi)].forEach(m=>add(`WAC ${m[1]}`,`https://app.leg.wa.gov/WAC/default.aspx?cite=${m[1]}`));
+  [...c.matchAll(/RCW\s+(\d+[A-Za-z]?\.\d+[A-Za-z]?\.\d+[A-Za-z]?)/gi)].forEach(m=>add(`RCW ${m[1]}`,`https://app.leg.wa.gov/RCW/default.aspx?cite=${m[1]}`));
+  // Texas Insurance Code section anchors.
+  if(/Tex\. Ins\. Code/i.test(c)){
+    const matches=[...c.matchAll(/(\d{3,4})\.(\d{3})/g)].map(m=>`${m[1]}.${m[2]}`);
+    matches.forEach(sec=>add(`Tex. Ins. Code § ${sec}`,`https://statutes.capitol.texas.gov/Docs/IN/htm/IN.${sec.split('.')[0]}.htm#${sec}`));
+  }
+  // Rhode Island General Laws.
+  [...c.matchAll(/R\.I\. Gen\. Laws\s+§\s+(\d+)-(\d+)-(\d+(?:\.\d+)?)/gi)].forEach(m=>add(`R.I. Gen. Laws § ${m[1]}-${m[2]}-${m[3]}`,riStatuteUrl(m[1],m[2],m[3])));
+  if(!out.length) add(c || 'Source', url);
+  return uniqueLinks(out);
+}
+function sourceGroupFromCitation(title,citation,url,fallbackLabel){
+  const links=derivedLinksFromCitation(citation,url);
+  if(links.length) return sourceGroup(title,links);
+  return sourceGroup(title,[makeSourceLink(fallbackLabel||citation||'Source',url)]);
+}
+function findSourceIndex(abbr,dataset){
+  return sourceIndexByAbbrDataset?.[abbr]?.[String(dataset||'').toLowerCase()] || null;
+}
 function sourceLinks(r){
-  const items = [
-    ['BI Source', get(r,'BI Source'), get(r,'BI Source URL')],
-    ['PD Source', get(r,'PD Source'), get(r,'PD Source URL')],
-    ['PIP Source', get(r,'PIP Source'), get(r,'PIP Source URL')],
-    ['UM/UIM Source', get(r,'UM/UIM Source'), get(r,'UM/UIM Source URL')],
-    ['BI SOL Source', get(r,'BI SOL Source'), get(r,'BI SOL Source URL')],
-    ['PD SOL Source', get(r,'PD SOL Source'), get(r,'PD SOL Source URL')]
+  const abbr=r?.abbr;
+  const pipIdx=findSourceIndex(abbr,'PIP / No-Fault');
+  const umIdx=findSourceIndex(abbr,'UM/UIM Rules');
+  const links=[
+    sourceGroup('Coverage Sources (BI, PD, UM/UIM)',uniqueLinks([
+      makeSourceLink(get(r,'BI Source')||'BI Source',get(r,'BI Source URL')),
+      makeSourceLink(get(r,'PD Source')||'PD Source',get(r,'PD Source URL')),
+      makeSourceLink(get(r,'UM/UIM Source')||get(umIdx,'Citation')||'UM/UIM Source',get(r,'UM/UIM Source URL')||get(umIdx,'URL'))
+    ])),
+    sourceGroup('PIP Source',uniqueLinks([
+      makeSourceLink(get(r,'PIP Source')||get(pipIdx,'Citation')||'PIP Source',get(r,'PIP Source URL')||get(pipIdx,'URL'))
+    ])),
+    sourceGroup('Statute of Limitations Sources',uniqueLinks([
+      makeSourceLink(get(r,'BI SOL Source')||'BI SOL Source',get(r,'BI SOL Source URL')),
+      makeSourceLink(get(r,'PD SOL Source')||'PD SOL Source',get(r,'PD SOL Source URL'))
+    ]))
   ];
-  return items.map(([fallback,label,url]) => link(label || fallback, url)).filter(Boolean).join('');
+  return links.filter(Boolean).join('');
 }
 
-function show(abbr){
-  const r = byAbbr[abbr] || rows[0];
-  if(!r) return;
-  currentAbbr = r.abbr;
-  select.value = r.abbr;
-  const sources = sourceLinks(r);
-  details.innerHTML = `
-    <div class="state-title"><h2>${esc(r.state)}</h2><span class="pill">${esc(r.abbr)}</span></div>
-    <div class="grid">
-      ${metric('Bodily Injury', get(r,'BI'))}
-      ${metric('Property Damage', get(r,'PD'))}
-      ${metric('PIP', get(r,'PIP'), true)}
-      ${metric('UM', get(r,'UM'), true)}
-      ${metric('UIM', get(r,'UIM'), true)}
-      ${metric('BI Statute of Limitations', get(r,'BI SOL'))}
-      ${metric('PD Statute of Limitations', get(r,'PD SOL'))}
-      ${metric('Effective Date', get(r,'Effective Date'))}
-      ${metric('Audit Status', get(r,'Recent Change / Audit Status'))}
+function policySourceLink(p){
+  if(!p) return '';
+  return sourceGroupFromCitation('Policy Disclosure Source',get(p,'Statute Citation'),get(p,'Statute URL'),'Policy Disclosure Source');
+}
+function claimsSourceLink(c){
+  if(!c) return '';
+  return sourceGroupFromCitation('Claims Handling Deadline Source',get(c,'Citation'),get(c,'URL'),'Claims Handling Source');
+}
+
+function policyDisclosureSection(abbr){
+  const p=policyByAbbr[abbr];
+  if(!p) return '';
+  return `
+    <h3 class="section-title">Policy Disclosure</h3>
+    <div class="requirements-grid">
+      ${metric('Disclosure Required',get(p,'Disclosure Required'))}
+      ${metric('Requestor',get(p,'Requestor'))}
+      ${metric('Deadline',get(p,'Deadline'))}
     </div>
-    <h3>Notes</h3>
-    <div class="notes">${esc(get(r,'Notes') || '—')}</div>
-    <h3>Sources</h3>
-    <div class="sources">${sources || '<span class="notes">No source hyperlinks found.</span>'}</div>
+    <div class="requirements-grid">
+      ${metric('Required Information',get(p,'Required Information'),true)}
+      ${metric('Citation',get(p,'Statute Citation'),true)}
+    </div>
+    ${get(p,'Notes') ? `<div class="notes">${esc(get(p,'Notes'))}</div>` : ''}
+  `;
+}
+function claimsDeadlineSection(abbr){
+  const c=claimsByAbbr[abbr];
+  if(!c) return '';
+  return `
+    <h3 class="section-title">Claims Handling Deadlines</h3>
+    <div class="requirements-grid">
+      ${metric('Acknowledgment',get(c,'Ack Deadline'))}
+      ${metric('Investigation',get(c,'Investigation Deadline'))}
+      ${metric('Payment',get(c,'Payment Deadline'))}
+    </div>
+    ${get(c,'Notes') ? `<div class="notes">${esc(get(c,'Notes'))}</div>` : ''}
+    <div class="requirements-grid">
+      ${metric('Citation',get(c,'Citation'),true)}
+    </div>
   `;
 }
 
+
+function populateOptions(list=sortedRows){
+  select.innerHTML='';
+  list.forEach(r=>{const opt=document.createElement('option');opt.value=r.abbr;opt.textContent=`${r.state} (${r.abbr})`;select.appendChild(opt);});
+}
+function renderMapInfo(abbr){
+  const card=document.getElementById('mapInfoCard');
+  const r=byAbbr[abbr]||byAbbr[currentAbbr]||rows[0];
+  if(!card||!r) return;
+  const umuimBI=[get(r,'UM'),get(r,'UIM')].filter(Boolean).join(' / ') || '—';
+  card.innerHTML=`
+    <h3>${esc(r.state)}</h3>
+    <div class="row"><span class="k">BI:</span><span class="v">${esc(get(r,'BI')||'—')}</span></div>
+    <div class="row"><span class="k">PD:</span><span class="v">${esc(get(r,'PD')||'—')}</span></div>
+    <div class="row"><span class="k">PIP:</span><span class="v">${esc(get(r,'PIP')||'—')}</span></div>
+    <div class="row"><span class="k">UM/UIM BI:</span><span class="v">${esc(umuimBI)}</span></div>
+    <div class="row"><span class="k">UM/UIM PD:</span><span class="v">${esc(get(r,'UM/UIM PD')||get(r,'UM PD')||get(r,'UIM PD')||get(r,'PD')||'—')}</span></div>
+    <div class="row"><span class="k">BI SOL:</span><span class="v">${esc(get(r,'BI SOL')||'—')}</span></div>
+    <div class="row"><span class="k">PD SOL:</span><span class="v">${esc(get(r,'PD SOL')||'—')}</span></div>
+    <div class="row"><span class="k">Eff. Date:</span><span class="v">${esc(get(r,'Effective Date')||'—')}</span></div>
+  `;
+}
+
+function show(abbr){
+  const r=byAbbr[abbr]||rows[0]; if(!r) return;
+  currentAbbr=r.abbr; select.value=r.abbr; renderMapInfo(r.abbr);
+  const p=policyByAbbr[r.abbr];
+  const c=claimsByAbbr[r.abbr];
+  const sources=sourceLinks(r) + policySourceLink(p) + claimsSourceLink(c); const notes=String(get(r,'Notes')||'').trim();
+  requestAnimationFrame(repaintRightPanel);
+  details.innerHTML=`
+    <div class="state-title"><h2>${esc(r.state)} (${esc(r.abbr)})</h2></div>
+    <h3 class="section-title">Minimum Insurance Requirements</h3>
+    <div class="requirements-grid">
+      ${metric('BI',get(r,'BI'))}
+      ${metric('PD',get(r,'PD'))}
+      ${metric('PIP',get(r,'PIP'))}
+      ${metric('UM',get(r,'UM'))}
+      ${metric('UIM',get(r,'UIM'))}
+    </div>
+    <h3 class="section-title">Statute of Limitations</h3>
+    <div class="requirements-grid">
+      ${metric('BI SOL',get(r,'BI SOL'))}
+      ${metric('PD SOL',get(r,'PD SOL'))}
+      ${get(r,'Effective Date') ? metric('Effective Date',get(r,'Effective Date'),true) : ''}
+    </div>
+    ${notes ? `<h3 class="section-title">Notes</h3><div class="notes">${esc(notes)}</div>` : ''}
+    ${policyDisclosureSection(r.abbr)}
+    ${claimsDeadlineSection(r.abbr)}
+    <h3 class="section-title">Sources</h3>
+    ${sources || '<div class="notes">No source hyperlinks found.</div>'}
+  `;
+  if(!suppressMobileOpen) openMobilePanel();
+}
+
+function applyMapVerticalFit(){
+  const mapDiv=document.getElementById('map');
+  if(!mapDiv) return;
+  // Plotly redraws the SVG on resize, so reapply the vertical fit after each render.
+  mapDiv.querySelectorAll('.geolayer').forEach(layer=>{
+    layer.style.transformBox='fill-box';
+    layer.style.transformOrigin='center center';
+    layer.style.transform='translateY(1.5%) scaleY(1.025)';
+  });
+}
+
 function drawMap(){
-  // Always draw a known-good 50-state map. Data from the workbook is joined by abbreviation.
-  const locations = STATE_CODES;
-  const z = STATE_CODES.map((_,i) => i + 1);
-  const text = STATE_CODES.map(code => {
-    const r = byAbbr[code];
-    const name = ABBR_TO_STATE[code] || code;
-    return `${name}<br>BI: ${r ? (get(r,'BI') || '—') : '—'}<br>PD: ${r ? (get(r,'PD') || '—') : '—'}<br>PIP: ${r ? (get(r,'PIP') || '—') : '—'}`;
+  const locations=STATE_CODES;
+  const z=STATE_CODES.map(()=>1);
+  const text=STATE_CODES.map(code=>{
+    const r=byAbbr[code]; const name=ABBR_TO_STATE[code]||code;
+    const umuim=r ? [get(r,'UM'),get(r,'UIM')].filter(Boolean).join(' / ') : '—';
+    return `<span style="text-decoration:underline;font-weight:900;">${String(name).toUpperCase()}</span><br><b>BI:</b> ${r?(get(r,'BI')||'—'):'—'}<br><b>PD:</b> ${r?(get(r,'PD')||'—'):'—'}<br><b>PIP:</b> ${r?(get(r,'PIP')||'—'):'—'}<br><b>UM/UIM:</b> ${umuim||'—'}`;
   });
 
-  const trace = {
-    type:'choropleth',
-    locationmode:'USA-states',
-    locations,
-    z,
-    zmin:1,
-    zmax:STATE_CODES.length,
-    text,
-    customdata:locations,
-    hovertemplate:'%{text}<extra></extra>',
-    colorscale:[[0,'#dbe7ff'],[1,'#275efe']],
-    autocolorscale:false,
-    reversescale:false,
-    showscale:false,
-    marker:{line:{color:'#ffffff',width:1.25}}
+  const trace={
+    type:'choropleth', locationmode:'USA-states', locations, z, zmin:0, zmax:1, text, customdata:locations,
+    hovertemplate:'<extra></extra>',
+    colorscale:[[0,'#74839a'],[1,'#74839a']],
+    autocolorscale:false, showscale:false,
+    marker:{line:{color:'#3c4b60',width:1.1}},
+    hoverlabel:{bgcolor:'#071c34', bordercolor:'#9bbcff', font:{color:'#f5f7fb', size:13}}
   };
 
-  const layout = {
-    geo:{scope:'usa', projection:{type:'albers usa'}, showlakes:false, showland:true, landcolor:'#eef2f7', bgcolor:'rgba(0,0,0,0)'},
-    dragmode:false,
-    margin:{l:0,r:0,t:0,b:0},
-    paper_bgcolor:'rgba(0,0,0,0)',
-    plot_bgcolor:'rgba(0,0,0,0)'
+  const oceanLabels = {
+    'PACIFIC<br>OCEAN':[34.0,-125.9],
+    'ATLANTIC<br>OCEAN':[33.5,-70.2],
+    'GULF OF<br>MEXICO':[24.0,-88.2]
   };
 
-  Plotly.newPlot('map', [trace], layout, {displayModeBar:false, responsive:true, staticPlot:false}).then(() => {
-    const mapDiv = document.getElementById('map');
+  const mainStateCenters={
+    AL:[32.7,-86.8],AK:[64.2,-152.3],AZ:[34.3,-111.7],AR:[35.0,-92.4],CA:[37.2,-119.7],CO:[39.0,-105.5],
+    FL:[28.0,-81.35],GA:[32.7,-83.4],HI:[20.15,-157.45],ID:[44.2,-114.4],IL:[40.0,-89.2],IN:[40.0,-86.2],IA:[42.1,-93.5],
+    KS:[38.5,-98.4],KY:[37.5,-85.3],LA:[31.0,-92.1],ME:[45.2,-69.2],MI:[43.85,-84.85],MN:[46.3,-94.3],
+    MS:[32.7,-89.7],MO:[38.5,-92.5],MT:[47.0,-110.0],NE:[41.5,-99.7],NV:[39.3,-116.6],NM:[34.5,-106.1],
+    NY:[42.9,-75.0],NC:[35.5,-79.4],ND:[47.5,-100.5],OH:[40.3,-82.8],OK:[35.6,-97.5],OR:[44.1,-120.6],
+    PA:[41.0,-77.7],SC:[33.8,-80.9],SD:[44.4,-100.2],TN:[35.8,-86.4],TX:[31.0,-99.3],UT:[39.3,-111.7],
+    VA:[37.5,-78.7],WA:[47.4,-120.7],WI:[44.6,-89.6],WV:[38.6,-80.6],WY:[43.0,-107.5]
+  };
+  const northeastCallouts={VT:[46.05,-72.25],NH:[43.75,-68.1],MA:[42.8,-67.8],RI:[41.85,-67.5],CT:[40.9,-67.25],NJ:[39.95,-67.05],DE:[39.0,-66.85],MD:[38.15,-66.65]};
+  const mainLabelTrace={type:'scattergeo',mode:'text',lat:Object.values(mainStateCenters).map(v=>v[0]),lon:Object.values(mainStateCenters).map(v=>v[1]),text:Object.keys(mainStateCenters),textfont:{color:'#ffffff',size:15,family:'Inter, Arial, sans-serif',weight:700},hoverinfo:'skip',showlegend:false};
+  const neLineLats=[], neLineLons=[];
+  const northeastAnchors={VT:[44.65,-72.25],NH:[43.75,-71.25],MA:[42.8,-71.55],RI:[41.85,-71.35],CT:[40.9,-72.5],NJ:[39.95,-74.35],DE:[39.0,-75.3],MD:[38.15,-76.35]};
+  Object.keys(northeastCallouts).forEach(k=>{const a=northeastAnchors[k], b=northeastCallouts[k]; neLineLats.push(a[0],b[0],null); neLineLons.push(a[1],b[1],null);});
+  const northeastLineTrace={type:'scattergeo',mode:'lines',lat:neLineLats,lon:neLineLons,line:{color:'#b4c2d7',width:1.2},hoverinfo:'skip',showlegend:false};
+  const northeastLabelTrace={type:'scattergeo',mode:'text',lat:Object.values(northeastCallouts).map(v=>v[0]),lon:Object.values(northeastCallouts).map(v=>v[1]),text:Object.keys(northeastCallouts),textfont:{color:'#ffffff',size:15,family:'Inter, Arial, sans-serif',weight:700},hoverinfo:'skip',showlegend:false};
+  const oceanLabelTrace={type:'scattergeo',mode:'text',lat:Object.values(oceanLabels).map(v=>v[0]),lon:Object.values(oceanLabels).map(v=>v[1]),text:Object.keys(oceanLabels),textfont:{color:'#ffffff',size:16,family:'Inter, Arial, sans-serif',weight:500},hoverinfo:'skip',showlegend:false};
+  const hitboxCenters={HI:[20.15,-157.45],VT:[46.05,-72.25],NH:[43.75,-68.1],MA:[42.8,-67.8],RI:[41.85,-67.5],CT:[40.9,-67.25],NJ:[39.95,-67.05],DE:[39.0,-66.85],MD:[38.15,-66.65]};
+  const hitboxTrace={type:'scattergeo',mode:'markers',lat:Object.values(hitboxCenters).map(v=>v[0]),lon:Object.values(hitboxCenters).map(v=>v[1]),customdata:Object.keys(hitboxCenters),marker:{size:42,color:'rgba(255,255,255,0.01)',line:{width:0}},hoverinfo:'skip',showlegend:false};
+
+  const layout={
+    geo:{scope:'usa',domain:{x:[0,1],y:[0,1]},projection:{type:'albers usa',scale:0.91},center:{lat:38.4,lon:-96.05},showlakes:false,showland:true,landcolor:'#061f3a',bgcolor:'#061f3a'},
+    dragmode:false,margin:{l:0,r:0,t:0,b:0},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)'
+  };
+  Plotly.newPlot('map',[trace,mainLabelTrace,northeastLineTrace,northeastLabelTrace,oceanLabelTrace,hitboxTrace],layout,{displayModeBar:false,responsive:true,staticPlot:false}).then(()=>{
+    const mapDiv=document.getElementById('map');
+    applyMapVerticalFit();
     if(mapDiv.removeAllListeners) mapDiv.removeAllListeners('plotly_click');
-    mapDiv.on('plotly_click', e => {
-      const abbr = e.points?.[0]?.location || e.points?.[0]?.customdata;
-      if(abbr && byAbbr[abbr]) show(abbr);
-    });
-    mapDiv.style.cursor = 'pointer';
+    mapDiv.on('plotly_click',e=>{const abbr=e.points?.[0]?.location||e.points?.[0]?.customdata; if(abbr&&byAbbr[abbr]) show(abbr);});
+    mapDiv.on('plotly_hover',e=>{const abbr=e.points?.[0]?.location||e.points?.[0]?.customdata; if(abbr&&byAbbr[abbr]) renderMapInfo(abbr);});
+    mapDiv.on('plotly_unhover',()=>renderMapInfo(currentAbbr));
+    mapDiv.style.cursor='pointer';
   });
 }
-
-function applyRows(nextRows, sheetName){
-  rows = nextRows;
-  byAbbr = Object.fromEntries(rows.map(r => [r.abbr, r]));
-  sortedRows = [...rows].sort((a,b) => a.state.localeCompare(b.state));
-  window.__INSURANCE_ROWS = rows;
-  populateOptions();
-  drawMap();
-  show(byAbbr[currentAbbr] ? currentAbbr : rows[0].abbr);
-  setStatus(`Loaded ${rows.length} state rows from <code>${esc(WORKBOOK_FILE)}</code>${sheetName ? `, sheet <code>${esc(sheetName)}</code>` : ''}.`);
+function applyRows(nextRows,sheetName,nextPolicyRows=[],nextClaimsRows=[],nextSourceIndexRows=[]){
+  rows=nextRows; byAbbr=Object.fromEntries(rows.map(r=>[r.abbr,r])); sortedRows=[...rows].sort((a,b)=>a.state.localeCompare(b.state));
+  policyRows=nextPolicyRows; policyByAbbr=Object.fromEntries(policyRows.map(r=>[r.abbr,r]));
+  claimsRows=nextClaimsRows; claimsByAbbr=Object.fromEntries(claimsRows.map(r=>[r.abbr,r]));
+  sourceIndexRows=nextSourceIndexRows; sourceIndexByAbbrDataset=buildSourceIndexLookup(sourceIndexRows);
+  window.__INSURANCE_ROWS=rows; window.__POLICY_DISCLOSURE_ROWS=policyRows; window.__CLAIMS_DEADLINE_ROWS=claimsRows; window.__SOURCE_INDEX_ROWS=sourceIndexRows; populateOptions(); drawMap(); suppressMobileOpen=true; show(byAbbr[currentAbbr]?currentAbbr:rows[0].abbr); suppressMobileOpen=false;
+  setStatus(`Loaded ${rows.length} state rows, ${policyRows.length} policy disclosure rows, and ${claimsRows.length} claims deadline rows from ${esc(WORKBOOK_FILE)}${sheetName?`, sheet ${esc(sheetName)}`:''}.`);
 }
-
 async function loadWorkbook(){
-  details.innerHTML = '<div class="notes">Loading spreadsheet data…</div>';
+  details.innerHTML='<div class="notes">Loading spreadsheet data…</div>';
   try{
-    await ensureLibrary(LIBRARIES[0]);
-    await ensureLibrary(LIBRARIES[1]);
-
-    setStatus('Loading spreadsheet…');
-    const url = new URL(WORKBOOK_FILE, window.location.href);
-    url.searchParams.set('v', Date.now().toString());
-    const response = await fetch(url.href, { cache:'no-store' });
-    if(!response.ok) throw new Error(`Could not load ${WORKBOOK_FILE}. HTTP ${response.status}. The file must be in the same folder as index.html and named exactly ${WORKBOOK_FILE}.`);
-
-    const buffer = await response.arrayBuffer();
-    const workbook = XLSX.read(buffer, { type:'array', cellDates:true, cellNF:false, cellText:true });
-    const loaded = sheetToRows(workbook);
-
-    if(!loaded.rows.length){
-      throw new Error(`The workbook loaded, but no recognizable state rows were found. Sheets found: ${workbook.SheetNames.join(', ')}. Confirm the active sheet has a State column in row 1, or send me the current workbook so I can tune the parser.`);
-    }
-
-    applyRows(loaded.rows, loaded.sheetName);
+    await ensureLibrary(LIBRARIES[0]); await ensureLibrary(LIBRARIES[1]);
+    const url=new URL(WORKBOOK_FILE,window.location.href); url.searchParams.set('v',Date.now().toString());
+    const response=await fetch(url.href,{cache:'no-store'});
+    if(!response.ok) throw new Error(`Could not load ${WORKBOOK_FILE}. HTTP ${response.status}.`);
+    const buffer=await response.arrayBuffer();
+    const workbook=XLSX.read(buffer,{type:'array',cellDates:true,cellNF:false,cellText:true});
+    const loaded=sheetToRows(workbook);
+    const loadedPolicy=policyRowsFromSheet(workbook,'Policy Disclosures');
+    const loadedClaims=claimsRowsFromSheet(workbook,'Claims_Deadlines_Website');
+    const loadedSourceIndex=sourceIndexRowsFromSheet(workbook,'Source_Index');
+    if(!loaded.rows.length) throw new Error(`The workbook loaded, but no recognizable state rows were found. Sheets found: ${workbook.SheetNames.join(', ')}.`);
+    applyRows(loaded.rows,loaded.sheetName,loadedPolicy,loadedClaims,loadedSourceIndex);
   }catch(err){
     console.error(err);
-    setStatus(`<strong>Loading error:</strong> ${esc(err.message)}`, true);
-    details.innerHTML = `
-      <div class="notes">
-        <strong>The map cannot populate because a required file or library did not load.</strong><br><br>
-        Most likely fixes:<br>
-        1. Confirm <code>${esc(WORKBOOK_FILE)}</code> is in the same GitHub folder as <code>index.html</code>.<br>
-        2. Confirm the filename matches exactly, including underscores and capitalization.<br>
-        3. Try the live page in an incognito/private window with extensions disabled.<br>
-        4. If your browser/network blocks CDNs, upload local copies of Plotly and SheetJS or use a different network.
-      </div>`;
+    setStatus(`<strong>Loading error:</strong> ${esc(err.message)}`,true);
+    details.innerHTML=`<div class="notes">The map could not load workbook data.<br><br><strong>Technical detail:</strong> ${esc(err.message)}<br><br>Confirm <code>${esc(WORKBOOK_FILE)}</code> is in the same folder as <code>index.html</code>, then use a local web server such as <code>python -m http.server 8000</code>.</div>`;
   }
 }
 
-search.addEventListener('input', e => {
-  const q = e.target.value.trim().toLowerCase();
-  const filtered = q ? sortedRows.filter(r => Object.values(r).some(v => String(v ?? '').toLowerCase().includes(q))) : sortedRows;
-  populateOptions(filtered.length ? filtered : sortedRows);
-  if(select.options.length) show(select.value || select.options[0].value);
+function isMobileDrawerMode(){return window.matchMedia('(max-width: 768px)').matches;}
+function openMobilePanel(){if(isMobileDrawerMode()) document.body.classList.add('mobile-panel-open');}
+function closeMobilePanel(){document.body.classList.remove('mobile-panel-open');}
+mobilePanelClose?.addEventListener('click',closeMobilePanel);
+mobilePanelBackdrop?.addEventListener('click',closeMobilePanel);
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closeMobilePanel();});
+window.addEventListener('resize',()=>{if(!isMobileDrawerMode()) closeMobilePanel();});
+
+search.addEventListener('input',e=>{
+  const q=e.target.value.trim().toLowerCase();
+  const filtered=q?sortedRows.filter(r=>{
+    const c=claimsByAbbr[r.abbr]||{};
+    const merged={...r,'Ack Deadline':get(c,'Ack Deadline'),'Investigation Deadline':get(c,'Investigation Deadline'),'Payment Deadline':get(c,'Payment Deadline'),'Claims Notes':get(c,'Notes')};
+    return PUBLIC_SEARCH_FIELDS.some(field=>String(get(merged,field)??'').toLowerCase().includes(q));
+  }):sortedRows;
+  populateOptions(filtered.length?filtered:sortedRows);
+  if(select.options.length) show(select.value||select.options[0].value);
 });
-select.addEventListener('change', e => show(e.target.value));
-reloadBtn.addEventListener('click', loadWorkbook);
-window.addEventListener('resize', () => {
-  if(rows.length && window.Plotly) Plotly.Plots.resize('map');
-});
+select.addEventListener('change',e=>show(e.target.value));
+reloadBtn.addEventListener('click',loadWorkbook);
+window.addEventListener('resize',()=>{if(rows.length&&window.Plotly) Plotly.Plots.resize('map').then(applyMapVerticalFit);});
+
+function snapRightPanelToDevicePixels(){
+  // Retained as a no-op for older event hooks. Do not move the panel with left/top
+  // offsets or transforms; fractional panel nudging caused intermittent text blur.
+}
+
+function repaintRightPanel(){
+  // Native borders/text repaint more cleanly without visibility toggles or panel nudges.
+  const panel=document.querySelector('.side-card');
+  if(!panel) return;
+  panel.style.removeProperty('--side-card-snap-x');
+  panel.style.removeProperty('--side-card-snap-y');
+}
+
+window.addEventListener('resize',()=>requestAnimationFrame(repaintRightPanel));
+window.addEventListener('pageshow',()=>requestAnimationFrame(repaintRightPanel));
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) requestAnimationFrame(repaintRightPanel); });
 
 loadWorkbook();
+requestAnimationFrame(repaintRightPanel);
+setTimeout(repaintRightPanel, 250);
+setTimeout(repaintRightPanel, 1000);
 </script>
 </body>
 </html>
